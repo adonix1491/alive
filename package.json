@@ -1,0 +1,20 @@
+{
+    "name": "alive-monorepo",
+    "version": "1.0.0",
+    "private": true,
+    "description": "ALIVE 愛來 - 個人安全簽到應用",
+    "scripts": {
+        "install:app": "cd AliveApp && npm install",
+        "install:backend": "cd backend && npm install",
+        "build:web": "cd AliveApp && npm run build:web",
+        "dev:web": "cd AliveApp && npm run web",
+        "dev:backend": "cd backend && npm run dev"
+    },
+    "workspaces": [
+        "AliveApp",
+        "backend"
+    ],
+    "engines": {
+        "node": ">=20"
+    }
+}
