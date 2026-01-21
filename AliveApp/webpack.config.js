@@ -46,7 +46,17 @@ module.exports = {
         filename: 'bundle.web.js',
     },
     module: {
-        rules: [babelLoaderConfiguration, imageLoaderConfiguration],
+        rules: [
+            babelLoaderConfiguration,
+            imageLoaderConfiguration,
+            // 修正 webpack 5 ES 模塊導入問題
+            {
+                test: /\.m?js$/,
+                resolve: {
+                    fullySpecified: false,
+                },
+            },
+        ],
     },
     plugins: [
         new HtmlWebpackPlugin({
@@ -58,10 +68,9 @@ module.exports = {
     ],
     resolve: {
         alias: {
-            'react-native': 'react-native-web',  // 移除 $ 以匹配所有子路徑
+            'react-native': 'react-native-web',
         },
         extensions: ['.web.tsx', '.web.ts', '.tsx', '.ts', '.web.js', '.js', '.jsx', '.json'],
-        fullySpecified: false,
     },
     devServer: {
         static: {
