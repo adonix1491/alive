@@ -59,8 +59,10 @@ module.exports = {
     resolve: {
         alias: {
             'react-native$': 'react-native-web',
+            'react-native-web': path.resolve(appDirectory, 'node_modules/react-native-web'),
         },
-        extensions: ['.web.tsx', '.web.ts', '.tsx', '.ts', '.web.js', '.js'],
+        extensions: ['.web.tsx', '.web.ts', '.tsx', '.ts', '.web.js', '.js', '.jsx', '.json'],
+        fullySpecified: false, // 修正 ES 模塊導入問題
     },
     devServer: {
         static: {
