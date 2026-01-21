@@ -1,0 +1,33 @@
+{
+    "version": 2,
+    "builds": [
+        {
+            "src": "AliveApp/package.json",
+            "use": "@vercel/static-build",
+            "config": {
+                "distDir": "dist"
+            }
+        }
+    ],
+    "routes": [
+        {
+            "src": "/api/(.*)",
+            "dest": "/backend/api/$1"
+        },
+        {
+            "handle": "filesystem"
+        },
+        {
+            "src": "/(.*)",
+            "dest": "/AliveApp/$1"
+        }
+    ],
+    "env": {
+        "POSTGRES_URL": "@postgres_url",
+        "JWT_SECRET": "@jwt_secret",
+        "GMAIL_USER": "@gmail_user",
+        "GMAIL_APP_PASSWORD": "@gmail_app_password",
+        "LINE_CHANNEL_ACCESS_TOKEN": "@line_channel_access_token",
+        "LINE_CHANNEL_SECRET": "@line_channel_secret"
+    }
+}
