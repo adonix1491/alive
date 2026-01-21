@@ -1,0 +1,31 @@
+# 忽略 iOS 相關
+ios/
+Gemfile
+Gemfile.lock
+.bundle/
+vendor/
+Pods/
+Podfile
+Podfile.lock
+
+# 忽略 Android 相關
+android/
+
+# 忽略 React Native 原生配置
+metro.config.js
+.watchmanconfig
+
+# 忽略測試和其他不需要的文件
+__tests__/
+.eslintrc.js
+.prettierrc.js
+jest.config.js
+
+# 保留 Web 需要的文件
+!webpack.config.js
+!index.web.js
+!public/
+!src/
+!package.json
+!tsconfig.json
+!babel.config.js
