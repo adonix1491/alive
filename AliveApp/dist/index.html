@@ -1,0 +1,51 @@
+<!doctype html><html lang="zh-TW"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><meta name="theme-color" content="#00B894"><meta name="description" content="ALIVE愛來 - 每日簽到，讓關心您的人知道您平安"><title>ALIVE愛來 - 安全簽到 APP</title><style>html, body, #root {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    
+    #root {
+      display: flex;
+    }
+    
+    /* 載入動畫 */
+    #loading {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(135deg, #00B894 0%, #55EFC4 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+    
+    #loading-logo {
+      font-size: 80px;
+      margin-bottom: 20px;
+      animation: pulse 2s infinite;
+    }
+    
+    #loading-text {
+      color: white;
+      font-size: 28px;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+    
+    #loading-hint {
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 16px;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }</style><script defer="defer" src="/bundle.web.js"></script></head><body><div id="root"><div id="loading"><div id="loading-logo">😊</div><div id="loading-text">ALIVE愛來</div><div id="loading-hint">每日一開，平安已達</div></div></div></body></html>
