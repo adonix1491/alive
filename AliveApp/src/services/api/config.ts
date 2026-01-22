@@ -4,9 +4,8 @@
  */
 
 // API 基礎 URL
-export const API_BASE_URL = __DEV__
-    ? 'http://localhost:3000/api'  // 開發環境
-    : 'https://alive-iota.vercel.app/api';  // 生產環境
+// FIXME: 暫時強制使用生產環境，待後續配置 webpack DefinePlugin
+export const API_BASE_URL = 'https://alive-iota.vercel.app/api';
 
 // Token 儲存 key
 export const AUTH_TOKEN_KEY = '@alive_auth_token';
