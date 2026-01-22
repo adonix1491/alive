@@ -13,6 +13,7 @@ export const users = pgTable('users', {
     password: text('password').notNull(),
     name: text('name').notNull(),
     phone: text('phone'),
+    lineId: text('line_id'), // Added User's LINE ID
     avatarUrl: text('avatar_url'),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
@@ -38,7 +39,7 @@ export const emergencyContacts = pgTable('emergency_contacts', {
     name: text('name').notNull(),
     phone: text('phone').notNull(),
     email: text('email'),
-    lineId: text('line_id'), // Added LINE ID
+    lineId: text('line_id'),
     relationship: text('relationship'),
     priority: integer('priority').default(1).notNull(),
     isEnabled: boolean('is_enabled').default(true).notNull(),

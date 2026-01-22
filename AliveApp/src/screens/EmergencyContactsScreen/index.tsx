@@ -35,6 +35,7 @@ const EmergencyContactsScreen: React.FC = () => {
     const [editingContact, setEditingContact] = useState<EmergencyContact | null>(null);
     const [formName, setFormName] = useState('');
     const [formPhone, setFormPhone] = useState('');
+    const [formLineId, setFormLineId] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     // 載入聯絡人
@@ -115,6 +116,7 @@ const EmergencyContactsScreen: React.FC = () => {
         setEditingContact(null);
         setFormName('');
         setFormPhone('');
+        setFormLineId('');
         setIsModalVisible(true);
     };
 
@@ -123,30 +125,38 @@ const EmergencyContactsScreen: React.FC = () => {
         setEditingContact(contact);
         setFormName(contact.name);
         setFormPhone(contact.phone);
+        setFormLineId(contact.lineId || '');
         setIsModalVisible(true);
     };
 
     // 提交表單
     const handleSubmit = async () => {
-        if (!formName.trim() || !formPhone.trim()) {
-            Alert.alert('錯誤', '姓名和電話為必填');
+        // 驗證邏輯：至少要有(電話) 或 (LINE ID)
+        if (!formName.trim()) {
+            Alert.alert('錯誤', '姓名為必填');
+            return;
+        }
+        if (!formPhone.trim() && !formLineId.trim()) {
+            Alert.alert('錯誤', '電話 或 LINE ID 請至少填寫這兩項之一');
             return;
         }
 
         setIsSubmitting(true);
         try {
+            const contactData = {
+                name: formName,
+                phone: formPhone,
+                lineId: formLineId,
+            };
+
             if (editingContact) {
                 // 更新
-                const response = await contactsService.update(editingContact.id, {
-                    name: formName,
-                    phone: formPhone,
-                });
+                const response = await contactsService.update(editingContact.id, contactData);
                 if (response.error) throw new Error(response.error.message);
             } else {
                 // 新增
                 const response = await contactsService.create({
-                    name: formName,
-                    phone: formPhone,
+                    ...contactData,
                     priority: contacts.length + 1,
                 });
                 if (response.error) throw new Error(response.error.message);
@@ -178,7 +188,10 @@ const EmergencyContactsScreen: React.FC = () => {
                 </View>
                 <View style={styles.contactDetails}>
                     <Text style={styles.contactName}>{item.name}</Text>
-                    <Text style={styles.contactPhone}>{item.phone}</Text>
+                    <View style={styles.contactMeta}>
+                        {!!item.phone && <Text style={styles.contactPhone}>📞 {item.phone}</Text>}
+                        {!!item.lineId && <Text style={styles.contactLine}>💬 {item.lineId}</Text>}
+                    </View>
                     {!item.isEnabled && (
                         <Text style={styles.disabledLabel}>已停用</Text>
                     )}
@@ -249,7 +262,7 @@ const EmergencyContactsScreen: React.FC = () => {
                                 {editingContact ? '編輯聯絡人' : '新增聯絡人'}
                             </Text>
 
-                            <Text style={styles.inputLabel}>姓名</Text>
+                            <Text style={styles.inputLabel}>姓名 *</Text>
                             <TextInput
                                 style={styles.input}
                                 value={formName}
@@ -264,6 +277,15 @@ const EmergencyContactsScreen: React.FC = () => {
                                 onChangeText={setFormPhone}
                                 placeholder="請輸入電話號碼"
                                 keyboardType="phone-pad"
+                            />
+
+                            <Text style={styles.inputLabel}>LINE ID</Text>
+                            <TextInput
+                                style={styles.input}
+                                value={formLineId}
+                                onChangeText={setFormLineId}
+                                placeholder="請輸入 LINE ID (選填)"
+                                autoCapitalize="none"
                             />
 
                             <View style={styles.modalButtons}>
@@ -325,7 +347,9 @@ const styles = StyleSheet.create({
     contactIconText: { fontSize: FONTS.size.lg, fontWeight: FONTS.bold as any, color: COLORS.white },
     contactDetails: { flex: 1 },
     contactName: { fontSize: FONTS.size.lg, fontWeight: FONTS.semiBold as any, color: COLORS.textPrimary },
-    contactPhone: { fontSize: FONTS.size.sm, color: COLORS.textSecondary, marginTop: SPACING.xs },
+    contactMeta: { marginTop: SPACING.xs },
+    contactPhone: { fontSize: FONTS.size.sm, color: COLORS.textSecondary },
+    contactLine: { fontSize: FONTS.size.sm, color: COLORS.success, marginTop: 2 },
     disabledLabel: { fontSize: FONTS.size.xs, color: COLORS.danger, marginTop: SPACING.xs },
     contactActions: { flexDirection: 'row', alignItems: 'center', gap: SPACING.md },
     deleteButton: { padding: SPACING.xs },
