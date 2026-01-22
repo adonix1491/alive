@@ -13,6 +13,10 @@
             "destination": "/AliveApp/dist/bundle.web.js"
         },
         {
+            "source": "/AliveApp/dist/(.*)",
+            "destination": "/AliveApp/dist/$1"
+        },
+        {
             "source": "/(.*)",
             "destination": "/AliveApp/dist/index.html"
         }
