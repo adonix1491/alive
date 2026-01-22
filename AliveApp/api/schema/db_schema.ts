@@ -24,12 +24,9 @@ export const users = pgTable('users', {
 export const checkIns = pgTable('check_ins', {
     id: serial('id').primaryKey(),
     userId: integer('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
-    timestamp: timestamp('timestamp').defaultNow().notNull(), // Changed from checkedAt
+    timestamp: timestamp('timestamp').defaultNow().notNull(),
     status: text('status').notNull(), // 'completed', 'missed', 'pending'
     location: jsonb('location'), // { latitude, longitude }
-    // Note: 'note' column is MISSING in backend schema I saw.
-    // If backend schema doesn't have it, I can't write to it.
-    // I will exclude 'note' for now to be safe.
 });
 
 /**
@@ -41,6 +38,7 @@ export const emergencyContacts = pgTable('emergency_contacts', {
     name: text('name').notNull(),
     phone: text('phone').notNull(),
     email: text('email'),
+    lineId: text('line_id'), // Added LINE ID
     relationship: text('relationship'),
     priority: integer('priority').default(1).notNull(),
     isEnabled: boolean('is_enabled').default(true).notNull(),
