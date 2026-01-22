@@ -29,3 +29,5 @@ jest.config.js
 !package.json
 !tsconfig.json
 !babel.config.js
+!api/
+!vercel.json
