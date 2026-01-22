@@ -55,19 +55,7 @@ export const notificationSettings = pgTable('notification_settings', {
     emailVerificationExpiresAt: timestamp('email_verification_expires_at'),
     emailVerificationSentAt: timestamp('email_verification_sent_at'),
     lineEnabled: boolean('line_enabled').default(false).notNull(),
+    lineUserId: text('line_user_id'),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
-});
-
-/**
- * LINE 綁定記錄表
- */
-export const lineBindings = pgTable('line_bindings', {
-    id: serial('id').primaryKey(),
-    userId: integer('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
-    lineUserId: text('line_user_id').notNull().unique(),
-    bindingCode: text('binding_code').notNull().unique(),
-    verified: boolean('verified').default(false).notNull(),
-    createdAt: timestamp('created_at').defaultNow().notNull(),
-    verifiedAt: timestamp('verified_at'),
 });
