@@ -9,7 +9,7 @@ import { db } from './lib/db';
 import { users, checkIns, emergencyContacts, notificationSettings } from './schema/schema';
 import { eq, desc, and } from 'drizzle-orm';
 import { hashPassword, comparePassword, generateToken, verifyToken } from './lib/auth';
-import { sendVerificationEmail, generateVerificationCode } from './lib/emailService';
+import { sendVerificationEmail, generateVerificationCode } from './lib/mailer';
 
 const app = express();
 
