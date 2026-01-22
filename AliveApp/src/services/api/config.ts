@@ -8,9 +8,8 @@ import { Platform } from 'react-native';
 // API 基礎 URL
 // Web 環境使用相對路徑以避免 CORS 並自動適配網域
 // Native 環境使用完整 URL
-export const API_BASE_URL = Platform.OS === 'web'
-    ? '/api'
-    : 'https://alive-iota.vercel.app/api';
+// 統一使用完整 URL 以避免任何還原或者是 CORS 設定問題
+export const API_BASE_URL = 'https://alive-iota.vercel.app/api';
 
 // Token 儲存 key
 export const AUTH_TOKEN_KEY = '@alive_auth_token';
