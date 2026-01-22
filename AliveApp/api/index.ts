@@ -5,7 +5,7 @@
 
 import { VercelRequest, VercelResponse } from '@vercel/node';
 import { db } from './lib/db';
-import { users, checkIns, emergencyContacts, notificationSettings } from '../../backend/db/schema';
+import { users, checkIns, emergencyContacts, notificationSettings } from './schema/schema';
 import { eq, desc, and, gte } from 'drizzle-orm';
 import {
     hashPassword,
@@ -16,7 +16,7 @@ import {
 import {
     sendVerificationEmail,
     generateVerificationCode
-} from './lib/emailService';
+} from './lib/mailer';
 
 /**
  * CORS 設定
