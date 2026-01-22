@@ -5,7 +5,7 @@
 
 import { VercelRequest, VercelResponse } from '@vercel/node';
 import { db } from './lib/db';
-import { users, checkIns, emergencyContacts, notificationSettings } from './schema/schema';
+import { users, checkIns, emergencyContacts, notificationSettings } from './schema/models';
 import { eq, desc, and, gte } from 'drizzle-orm';
 import {
     hashPassword,
