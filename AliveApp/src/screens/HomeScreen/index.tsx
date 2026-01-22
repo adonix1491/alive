@@ -40,10 +40,11 @@ const HomeScreen: React.FC = () => {
      */
     const checkProfileCompletion = useCallback(() => {
         // 1. 訪客檢查 (未登入)
+        // 1. 訪客檢查 (未登入)
         if (!user) {
             Alert.alert(
-                '訪客模式',
-                '簽到功能需要先登入或註冊會員。\n(已註冊者請點擊「前往登入」)',
+                '您尚未登入',
+                '目前系統顯示您為「訪客狀態」，無法執行簽到或儲存資料。\n\n如果您認為已經登入，請嘗試重新登入以刷新狀態。',
                 [
                     { text: '取消', style: 'cancel' },
                     {
@@ -238,11 +239,18 @@ const HomeScreen: React.FC = () => {
                         {/* 緊急聯絡人卡片 */}
                         <StatusCard
                             title="緊急聯絡人"
-                            subtitle="已設置 2 位聯絡人"
+                            subtitle={user ? "管理聯絡人" : "需先登入"}
                             variant="default"
                             onPress={() => {
-                                // TODO: 導航至緊急聯絡人頁面
-                                Alert.alert('提示', '前往緊急聯絡人設置');
+                                if (!user) {
+                                    Alert.alert('請先登入', '設定緊急聯絡人需要登入會員', [
+                                        { text: '取消', style: 'cancel' },
+                                        { text: '前往登入', onPress: () => navigation.navigate('Auth') }
+                                    ]);
+                                } else {
+                                    // TODO: 導航至緊急聯絡人頁面
+                                    Alert.alert('提示', '前往緊急聯絡人設置');
+                                }
                             }}
                             rightContent={<Text style={styles.arrowIcon}>›</Text>}
                             style={styles.card}
