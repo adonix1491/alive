@@ -8,6 +8,7 @@ import { AppNavigator } from './src/navigation';
 import { initializeFirebase } from './src/services/firebase';
 import { COLORS, FONTS } from './src/theme';
 import { APP_INFO } from './src/constants';
+import { AuthProvider } from './src/contexts/AuthContext';
 
 /**
  * 應用程式根元件
@@ -59,10 +60,10 @@ const App: React.FC = () => {
   }
 
   return (
-    <>
+    <AuthProvider>
       <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
       <AppNavigator />
-    </>
+    </AuthProvider>
   );
 };
 

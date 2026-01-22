@@ -16,12 +16,13 @@ import {
     HomeScreen,
     SettingsScreen,
     EmergencyContactsScreen,
-    LoginScreen,
     MessageTemplatesScreen,
     NotificationSettingsScreen,
     AnomalyRulesScreen,
     ProfileScreen,
 } from '../screens';
+import { AuthScreen } from '../screens/AuthScreen';
+import { useAuth } from '../contexts/AuthContext';
 
 // 創建導航器
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -103,8 +104,12 @@ const MainTabNavigator: React.FC = () => {
  * 根導航器
  */
 const AppNavigator: React.FC = () => {
-    // TODO: 根據認證狀態決定初始路由
-    const isAuthenticated = true; // 暫時設為 true 以顯示主頁面
+    const { isAuthenticated, isLoading } = useAuth();
+
+    //  載入中顯示空白畫面
+    if (isLoading) {
+        return null;
+    }
 
     return (
         <NavigationContainer>
@@ -112,45 +117,47 @@ const AppNavigator: React.FC = () => {
                 screenOptions={{
                     headerShown: false,
                 }}
-                initialRouteName={isAuthenticated ? ROUTES.MAIN : ROUTES.AUTH}
             >
-                {/* 認證流程 */}
-                <Stack.Screen name={ROUTES.AUTH} component={LoginScreen} />
-                <Stack.Screen name={ROUTES.LOGIN} component={LoginScreen} />
+                {!isAuthenticated ? (
+                    /* 未登入：顯示登入畫面 */
+                    <Stack.Screen name={ROUTES.AUTH} component={AuthScreen} />
+                ) : (
+                    /* 已登入：顯示主要應用 */
+                    <>
+                        <Stack.Screen name={ROUTES.MAIN} component={MainTabNavigator} />
 
-                {/* 主要應用 */}
-                <Stack.Screen name={ROUTES.MAIN} component={MainTabNavigator} />
-
-                {/* 設定相關頁面 */}
-                <Stack.Screen
-                    name={ROUTES.ADD_EMERGENCY_CONTACT}
-                    component={EmergencyContactsScreen}
-                    options={{
-                        presentation: 'modal',
-                        animation: 'slide_from_bottom',
-                    }}
-                />
-                <Stack.Screen
-                    name={ROUTES.NOTIFICATION_SETTINGS}
-                    component={NotificationSettingsScreen}
-                    options={{
-                        animation: 'slide_from_right',
-                    }}
-                />
-                <Stack.Screen
-                    name={ROUTES.MESSAGE_TEMPLATES}
-                    component={MessageTemplatesScreen}
-                    options={{
-                        animation: 'slide_from_right',
-                    }}
-                />
-                <Stack.Screen
-                    name={ROUTES.ANOMALY_RULES}
-                    component={AnomalyRulesScreen}
-                    options={{
-                        animation: 'slide_from_right',
-                    }}
-                />
+                        {/* 設定相關頁面 */}
+                        <Stack.Screen
+                            name={ROUTES.ADD_EMERGENCY_CONTACT}
+                            component={EmergencyContactsScreen}
+                            options={{
+                                presentation: 'modal',
+                                animation: 'slide_from_bottom',
+                            }}
+                        />
+                        <Stack.Screen
+                            name={ROUTES.NOTIFICATION_SETTINGS}
+                            component={NotificationSettingsScreen}
+                            options={{
+                                animation: 'slide_from_right',
+                            }}
+                        />
+                        <Stack.Screen
+                            name={ROUTES.MESSAGE_TEMPLATES}
+                            component={MessageTemplatesScreen}
+                            options={{
+                                animation: 'slide_from_right',
+                            }}
+                        />
+                        <Stack.Screen
+                            name={ROUTES.ANOMALY_RULES}
+                            component={AnomalyRulesScreen}
+                            options={{
+                                animation: 'slide_from_right',
+                            }}
+                        />
+                    </>
+                )}
             </Stack.Navigator>
         </NavigationContainer>
     );

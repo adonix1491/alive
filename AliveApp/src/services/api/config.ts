@@ -6,7 +6,7 @@
 // API 基礎 URL
 export const API_BASE_URL = __DEV__
     ? 'http://localhost:3000/api'  // 開發環境
-    : 'https://your-project.vercel.app/api';  // 生產環境（需要替換為實際 URL）
+    : 'https://alive-iota.vercel.app/api';  // 生產環境
 
 // Token 儲存 key
 export const AUTH_TOKEN_KEY = '@alive_auth_token';
