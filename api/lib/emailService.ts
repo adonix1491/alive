@@ -1,6 +1,6 @@
 /**
  * Email 服務
- * 使用 Nodemailer + Gmail SMTP 發送郵�?
+ * 使用 Nodemailer + Gmail SMTP 發送郵件
  */
 import nodemailer from 'nodemailer';
 
@@ -14,27 +14,27 @@ const transporter = nodemailer.createTransport({
 });
 
 /**
- * 發�?Email 驗證�?
+ * 發送 Email 驗證碼
  */
 export async function sendVerificationEmail(email: string, code: string): Promise<void> {
     const mailOptions = {
         from: `ALIVE 愛來 <${process.env.GMAIL_USER}>`,
         to: email,
-        subject: 'ALIVE 愛來 - Email 驗證�?,
+        subject: 'ALIVE 愛來 - Email 驗證碼',
         html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
                 <h2 style="color: #4CAF50;">ALIVE 愛來 - Email 驗證</h2>
-                <p>您的驗證碼是�?/p>
+                <p>您的驗證碼是：</p>
                 <div style="background-color: #f5f5f5; padding: 20px; text-align: center; font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #333;">
                     ${code}
                 </div>
                 <p style="color: #666; margin-top: 20px;">
-                    此驗證碼將在 10 分鐘後失效�?br>
-                    如果您沒有請求此驗證碼，請忽略此郵件�?
+                    此驗證碼將在 10 分鐘後失效。<br>
+                    如果您沒有請求此驗證碼，請忽略此郵件。
                 </p>
                 <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
                 <p style="color: #999; font-size: 12px;">
-                    這是一封自動發送的郵件，請勿回覆�?br>
+                    這是一封自動發送的郵件，請勿回覆。<br>
                     © 2026 ALIVE 愛來. All rights reserved.
                 </p>
             </div>
@@ -46,7 +46,7 @@ export async function sendVerificationEmail(email: string, code: string): Promis
         console.log('Verification email sent to:', email);
     } catch (error) {
         console.error('Failed to send email:', error);
-        throw new Error('發送驗證郵件失�?);
+        throw new Error('發送驗證郵件失敗');
     }
 }
 
@@ -68,20 +68,20 @@ export async function sendEmergencyEmail(
                     <h2 style="margin: 0;">⚠️ 緊急通知</h2>
                 </div>
                 <div style="padding: 20px; background-color: #fff3cd;">
-                    <h3>${userName} 需要您的關�?/h3>
+                    <h3>${userName} 需要您的關注</h3>
                     <p style="font-size: 16px; line-height: 1.6;">
                         ${message}
                     </p>
                 </div>
                 <div style="padding: 20px; background-color: #f5f5f5;">
                     <p style="color: #666;">
-                        <strong>時間�?/strong> ${new Date().toLocaleString('zh-TW')}<br>
-                        <strong>來源�?/strong> ALIVE 愛來健康監測系統
+                        <strong>時間：</strong> ${new Date().toLocaleString('zh-TW')}<br>
+                        <strong>來源：</strong> ALIVE 愛來健康監測系統
                     </p>
                 </div>
                 <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
                 <p style="color: #999; font-size: 12px; padding: 0 20px;">
-                    這是一封自動發送的緊急通知郵件�?br>
+                    這是一封自動發送的緊急通知郵件。<br>
                     © 2026 ALIVE 愛來. All rights reserved.
                 </p>
             </div>
@@ -98,7 +98,7 @@ export async function sendEmergencyEmail(
 }
 
 /**
- * 生成 6 位數驗證�?
+ * 生成 6 位數驗證碼
  */
 export function generateVerificationCode(): string {
     return Math.floor(100000 + Math.random() * 900000).toString();

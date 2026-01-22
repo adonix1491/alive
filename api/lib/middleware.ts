@@ -1,6 +1,6 @@
 /**
  * API Middleware
- * 提供 JWT 驗證、錯誤處理等中間件功�?
+ * 提供 JWT 驗證、錯誤處理等中間件功能
  */
 import { VercelRequest, VercelResponse } from '@vercel/node';
 import { verifyToken } from './auth';
@@ -59,10 +59,10 @@ export const requireAuth = (handler: (req: AuthenticatedRequest, res: VercelResp
                 return sendError(res, 401, 'INVALID_TOKEN', 'Token 無效或已過期');
             }
 
-            // �?userId 附加�?request
+            // 將 userId 附加到 request
             req.userId = payload.userId;
 
-            // 執行原本�?handler
+            // 執行原本的 handler
             return await handler(req, res);
 
         } catch (error) {
@@ -87,7 +87,7 @@ export const enableCORS = (res: VercelResponse) => {
 };
 
 /**
- * 處理 OPTIONS 請求（preflight�?
+ * 處理 OPTIONS 請求（preflight）
  */
 export const handleOptions = (req: VercelRequest, res: VercelResponse) => {
     if (req.method === 'OPTIONS') {
