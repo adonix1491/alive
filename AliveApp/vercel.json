@@ -1,0 +1,34 @@
+{
+    "version": 2,
+    "builds": [
+        {
+            "src": "api/**/*.ts",
+            "use": "@vercel/node"
+        },
+        {
+            "src": "package.json",
+            "use": "@vercel/static-build",
+            "config": {
+                "distDir": "web-build"
+            }
+        }
+    ],
+    "rewrites": [
+        {
+            "source": "/api/probe",
+            "destination": "/api/probe"
+        },
+        {
+            "source": "/api/health",
+            "destination": "/api/health"
+        },
+        {
+            "source": "/api/(.*)",
+            "destination": "/api"
+        },
+        {
+            "source": "/(.*)",
+            "destination": "/index.html"
+        }
+    ]
+}
