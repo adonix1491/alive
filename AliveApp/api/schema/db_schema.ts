@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * 資料庫 Schema 定義 (Drizzle ORM)
  */

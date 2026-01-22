@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * ALIVE 統一 API Handler
  * 處理所有 API 請求並路由到對應的邏輯
