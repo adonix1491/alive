@@ -18,21 +18,70 @@ import { APP_INFO } from '../../constants';
 import { checkinService } from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
 
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../../types';
+
 /**
  * 首頁畫面
  * 核心功能：一鍵簽到、顯示安全狀態、緊急聯絡人資訊
  */
 const HomeScreen: React.FC = () => {
+    const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
     const { user } = useAuth();
     const [isCheckedIn, setIsCheckedIn] = useState(false);
     const [lastCheckInTime, setLastCheckInTime] = useState<Date | null>(null);
     const [isLoading, setIsLoading] = useState(false);
 
     /**
+     * 檢查個人資料完整性
+     * 簽到前必須確保用戶已綁定至少一種聯絡方式
+     */
+    const checkProfileCompletion = useCallback(() => {
+        if (!user) {
+            Alert.alert(
+                '請先登入',
+                '為了記錄您的安全狀態，請先登入或註冊帳號。',
+                [
+                    { text: '取消', style: 'cancel' },
+                    {
+                        text: '前往登入',
+                        onPress: () => navigation.navigate('Auth')
+                    }
+                ]
+            );
+            return false;
+        }
+
+        // 檢查是否綁定 Email 或手機
+        if (!user.email && !user.phoneNumber) {
+            Alert.alert(
+                '資料未完善',
+                '為了確保緊急時刻能聯繫到您，請先綁定 Email 或手機號碼。',
+                [
+                    { text: '稍後再說', style: 'cancel' },
+                    {
+                        text: '前往綁定',
+                        onPress: () => navigation.navigate('Auth') // 或導航至 Profile 设置页
+                    }
+                ]
+            );
+            return false;
+        }
+
+        return true;
+    }, [user, navigation]);
+
+    /**
      * 處理簽到動作
      * 使用真實 API 建立簽到記錄
      */
     const handleCheckIn = useCallback(async () => {
+        // 先檢查資料完整性
+        if (!checkProfileCompletion()) {
+            return;
+        }
+
         if (isCheckedIn) {
             Alert.alert('已簽到', '您今天已經完成簽到了！');
             return;
@@ -61,7 +110,7 @@ const HomeScreen: React.FC = () => {
                 [{ text: '確定', style: 'cancel' }]
             );
         }
-    }, [isCheckedIn]);
+    }, [isCheckedIn, checkProfileCompletion]);
 
     /**
      * 格式化時間顯示

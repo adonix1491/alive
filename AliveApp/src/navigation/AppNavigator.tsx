@@ -117,47 +117,51 @@ const AppNavigator: React.FC = () => {
                 screenOptions={{
                     headerShown: false,
                 }}
+                initialRouteName={ROUTES.MAIN}
             >
-                {!isAuthenticated ? (
-                    /* 未登入：顯示登入畫面 */
-                    <Stack.Screen name={ROUTES.AUTH} component={AuthScreen} />
-                ) : (
-                    /* 已登入：顯示主要應用 */
-                    <>
-                        <Stack.Screen name={ROUTES.MAIN} component={MainTabNavigator} />
+                {/* 主要應用界面（預設進入） */}
+                <Stack.Screen name={ROUTES.MAIN} component={MainTabNavigator} />
 
-                        {/* 設定相關頁面 */}
-                        <Stack.Screen
-                            name={ROUTES.ADD_EMERGENCY_CONTACT}
-                            component={EmergencyContactsScreen}
-                            options={{
-                                presentation: 'modal',
-                                animation: 'slide_from_bottom',
-                            }}
-                        />
-                        <Stack.Screen
-                            name={ROUTES.NOTIFICATION_SETTINGS}
-                            component={NotificationSettingsScreen}
-                            options={{
-                                animation: 'slide_from_right',
-                            }}
-                        />
-                        <Stack.Screen
-                            name={ROUTES.MESSAGE_TEMPLATES}
-                            component={MessageTemplatesScreen}
-                            options={{
-                                animation: 'slide_from_right',
-                            }}
-                        />
-                        <Stack.Screen
-                            name={ROUTES.ANOMALY_RULES}
-                            component={AnomalyRulesScreen}
-                            options={{
-                                animation: 'slide_from_right',
-                            }}
-                        />
-                    </>
-                )}
+                {/* 認證與綁定頁面 */}
+                <Stack.Screen
+                    name={ROUTES.AUTH}
+                    component={AuthScreen}
+                    options={{
+                        presentation: 'modal',
+                        animation: 'slide_from_bottom',
+                    }}
+                />
+
+                {/* 設定相關頁面 */}
+                <Stack.Screen
+                    name={ROUTES.ADD_EMERGENCY_CONTACT}
+                    component={EmergencyContactsScreen}
+                    options={{
+                        presentation: 'modal',
+                        animation: 'slide_from_bottom',
+                    }}
+                />
+                <Stack.Screen
+                    name={ROUTES.NOTIFICATION_SETTINGS}
+                    component={NotificationSettingsScreen}
+                    options={{
+                        animation: 'slide_from_right',
+                    }}
+                />
+                <Stack.Screen
+                    name={ROUTES.MESSAGE_TEMPLATES}
+                    component={MessageTemplatesScreen}
+                    options={{
+                        animation: 'slide_from_right',
+                    }}
+                />
+                <Stack.Screen
+                    name={ROUTES.ANOMALY_RULES}
+                    component={AnomalyRulesScreen}
+                    options={{
+                        animation: 'slide_from_right',
+                    }}
+                />
             </Stack.Navigator>
         </NavigationContainer>
     );

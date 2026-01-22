@@ -76,3 +76,4 @@ ios/Pods/
 
 # Drizzle
 drizzle/
+.env*.local

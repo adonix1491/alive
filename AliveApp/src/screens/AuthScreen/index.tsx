@@ -27,7 +27,7 @@ export const AuthScreen: React.FC = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [name, setName] = useState('');
-    const [phone, setPhone] = useState('');
+    const [phoneNumber, setPhoneNumber] = useState('');
 
     /**
      * 處理登入
@@ -62,7 +62,7 @@ export const AuthScreen: React.FC = () => {
         }
 
         setIsLoading(true);
-        const result = await register(email, password, name, phone);
+        const result = await register(email, password, name, phoneNumber);
         setIsLoading(false);
 
         if (!result.success) {
@@ -79,7 +79,7 @@ export const AuthScreen: React.FC = () => {
         setEmail('');
         setPassword('');
         setName('');
-        setPhone('');
+        setPhoneNumber('');
     };
 
     return (
@@ -136,8 +136,8 @@ export const AuthScreen: React.FC = () => {
                         <TextInput
                             style={styles.input}
                             placeholder="電話（選填）"
-                            value={phone}
-                            onChangeText={setPhone}
+                            value={phoneNumber}
+                            onChangeText={setPhoneNumber}
                             keyboardType="phone-pad"
                             placeholderTextColor={COLORS.textSecondary}
                         />
@@ -218,7 +218,7 @@ const styles = StyleSheet.create({
         marginBottom: SPACING.md,
         fontSize: FONTS.size.md,
         borderWidth: 1,
-        borderColor: COLORS.border,
+        borderColor: COLORS.gray200,
     },
     button: {
         backgroundColor: COLORS.primary,
@@ -233,7 +233,7 @@ const styles = StyleSheet.create({
     buttonText: {
         color: COLORS.white,
         fontSize: FONTS.size.md,
-        fontWeight: FONTS.semibold as any,
+        fontWeight: FONTS.semiBold as any,
     },
     switchButton: {
         marginTop: SPACING.lg,
@@ -245,6 +245,6 @@ const styles = StyleSheet.create({
     },
     switchTextBold: {
         color: COLORS.primary,
-        fontWeight: FONTS.semibold as any,
+        fontWeight: FONTS.semiBold as any,
     },
 });

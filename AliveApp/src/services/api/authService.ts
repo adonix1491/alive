@@ -12,7 +12,7 @@ export interface User {
     id: number;
     email: string;
     name: string;
-    phone?: string;
+    phoneNumber?: string;
     avatarUrl?: string;
 }
 
@@ -23,7 +23,15 @@ export interface RegisterParams {
     email: string;
     password: string;
     name: string;
-    phone?: string;
+    phoneNumber?: string;
+}
+
+/**
+ * 更新個人資料參數
+ */
+export interface UpdateProfileParams {
+    name?: string;
+    phoneNumber?: string;
 }
 
 /**
@@ -93,6 +101,26 @@ class AuthService {
 
         return authenticatedRequest<User>('/auth/me', token, {
             method: 'GET',
+        });
+    }
+
+    /**
+     * 更新個人資料
+     */
+    async updateProfile(params: UpdateProfileParams): Promise<ApiResponse<{ user: User }>> {
+        const token = await this.getToken();
+        if (!token) {
+            return {
+                error: {
+                    code: 'NO_TOKEN',
+                    message: '未登入',
+                },
+            };
+        }
+
+        return authenticatedRequest<{ user: User }>('/user/profile', token, {
+            method: 'PUT',
+            body: JSON.stringify(params),
         });
     }
 
