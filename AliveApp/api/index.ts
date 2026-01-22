@@ -115,7 +115,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                     name,
                     email,
                     password: hashedPassword,
-                    phoneNumber: phoneNumber || null,
+                    phone: phoneNumber || null,
                 })
                 .returning();
 
@@ -125,6 +125,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 userId: newUser.id,
                 emailEnabled: false,
                 lineEnabled: false,
+                pushEnabled: true
             });
 
             // 生成 Token
@@ -245,7 +246,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                     .update(users)
                     .set({
                         name,
-                        phoneNumber: phoneNumber || null,
+                        phone: phoneNumber || null,
                     })
                     .where(eq(users.id, auth.userId))
                     .returning({
@@ -393,7 +394,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                         userId: auth.userId,
                         name,
                         relationship: relationship || null,
-                        phoneNumber,
+                        phone: phoneNumber,
                         email: email || null,
                     })
                     .returning();
@@ -441,7 +442,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                     .set({
                         name,
                         relationship: relationship || null,
-                        phoneNumber,
+                        phone: phoneNumber,
                         email: email || null,
                     })
                     .where(eq(emergencyContacts.id, contactId))
