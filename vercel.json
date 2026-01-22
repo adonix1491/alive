@@ -1,5 +1,3 @@
 {
-    "version": 2,
-    "buildCommand": "cd AliveApp && npm install && npm run build",
-    "outputDirectory": "AliveApp/web-build"
+    "version": 2
 }
