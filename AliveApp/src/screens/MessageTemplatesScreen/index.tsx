@@ -12,24 +12,65 @@ import {
     TextInput,
     Alert,
     ScrollView,
+    ActivityIndicator,
 } from 'react-native';
 import { GradientBackground } from '../../components';
 import { COLORS, FONTS, SPACING, RADIUS, SHADOWS } from '../../theme';
 import { useNavigation } from '@react-navigation/native';
-import { useAuth } from '../../contexts/AuthContext';
+import { messageService } from '../../services/api';
 
 const MessageTemplatesScreen: React.FC = () => {
     const navigation = useNavigation();
-    const { user } = useAuth();
 
     const [defaultMessage, setDefaultMessage] = useState('我長時間未簽到，可能發生意外，請嘗試聯繫我或協助確認我的安全。');
     const [customMessage, setCustomMessage] = useState('');
     const [isEditing, setIsEditing] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
 
-    const handleSave = () => {
-        // TODO: Call API to save settings
-        setIsEditing(false);
-        Alert.alert('成功', '訊息模板已儲存');
+    // Load template on mount
+    React.useEffect(() => {
+        loadTemplate();
+    }, []);
+
+    const loadTemplate = async () => {
+        setIsLoading(true);
+        try {
+            const { data, error } = await messageService.getTemplates();
+            if (data?.templates) {
+                const custom = data.templates.find(t => t.type === 'custom');
+                if (custom) {
+                    setCustomMessage(custom.content);
+                }
+            } else if (error) {
+                console.log('Load templates error:', error);
+            }
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleSave = async () => {
+        if (!customMessage.trim()) {
+            Alert.alert('提示', '請輸入內容');
+            return;
+        }
+
+        setIsSaving(true);
+        const { data, error } = await messageService.saveTemplate({
+            type: 'custom',
+            content: customMessage.trim(),
+        });
+        setIsSaving(false);
+
+        if (data) {
+            setIsEditing(false);
+            Alert.alert('成功', '訊息模板已儲存');
+        } else {
+            Alert.alert('錯誤', error?.message || '儲存失敗');
+        }
     };
 
     return (
@@ -44,48 +85,56 @@ const MessageTemplatesScreen: React.FC = () => {
                     <View style={{ width: 40 }} />
                 </View>
 
-                <ScrollView style={styles.content}>
-                    <View style={styles.section}>
-                        <Text style={styles.sectionTitle}>預設通知訊息</Text>
-                        <View style={styles.card}>
-                            <Text style={styles.messageText}>{defaultMessage}</Text>
-                        </View>
-                        <Text style={styles.hintText}>此為系統預設的緊急通知內容。</Text>
+                {isLoading ? (
+                    <View style={styles.loadingContainer}>
+                        <ActivityIndicator size="large" color={COLORS.primary} />
                     </View>
-
-                    <View style={styles.section}>
-                        <View style={styles.sectionHeader}>
-                            <Text style={styles.sectionTitle}>自訂通知訊息</Text>
-                            {!isEditing ? (
-                                <TouchableOpacity onPress={() => setIsEditing(true)}>
-                                    <Text style={styles.editLink}>編輯</Text>
-                                </TouchableOpacity>
-                            ) : (
-                                <TouchableOpacity onPress={handleSave}>
-                                    <Text style={styles.saveLink}>完成</Text>
-                                </TouchableOpacity>
-                            )}
-                        </View>
-
-                        {isEditing ? (
-                            <TextInput
-                                style={styles.input}
-                                value={customMessage}
-                                onChangeText={setCustomMessage}
-                                multiline
-                                placeholder="請輸入您想對緊急聯絡人說的話..."
-                                textAlignVertical="top"
-                            />
-                        ) : (
+                ) : (
+                    <ScrollView style={styles.content}>
+                        <View style={styles.section}>
+                            <Text style={styles.sectionTitle}>預設通知訊息</Text>
                             <View style={styles.card}>
-                                <Text style={[styles.messageText, !customMessage && styles.placeholderText]}>
-                                    {customMessage || '點擊編輯以設定自訂訊息...'}
-                                </Text>
+                                <Text style={styles.messageText}>{defaultMessage}</Text>
                             </View>
-                        )}
-                        <Text style={styles.hintText}>自訂訊息將附加在預設訊息之後發送。</Text>
-                    </View>
-                </ScrollView>
+                            <Text style={styles.hintText}>此為系統預設的緊急通知內容。</Text>
+                        </View>
+
+                        <View style={styles.section}>
+                            <View style={styles.sectionHeader}>
+                                <Text style={styles.sectionTitle}>自訂通知訊息</Text>
+                                {!isEditing ? (
+                                    <TouchableOpacity onPress={() => setIsEditing(true)}>
+                                        <Text style={styles.editLink}>編輯</Text>
+                                    </TouchableOpacity>
+                                ) : (
+                                    <TouchableOpacity onPress={handleSave} disabled={isSaving}>
+                                        <Text style={[styles.saveLink, isSaving && { opacity: 0.5 }]}>
+                                            {isSaving ? '儲存中...' : '完成'}
+                                        </Text>
+                                    </TouchableOpacity>
+                                )}
+                            </View>
+
+                            {isEditing ? (
+                                <TextInput
+                                    style={styles.input}
+                                    value={customMessage}
+                                    onChangeText={setCustomMessage}
+                                    multiline
+                                    placeholder="請輸入您想對緊急聯絡人說的話..."
+                                    textAlignVertical="top"
+                                />
+                            ) : (
+                                <View style={styles.card}>
+                                    <Text style={[styles.messageText, !customMessage && styles.placeholderText]}>
+                                        {customMessage || '點擊編輯以設定自訂訊息...'}
+                                    </Text>
+                                </View>
+                            )}
+                            <Text style={styles.hintText}>自訂訊息將附加在預設訊息之後發送。</Text>
+                        </View>
+                    </ScrollView>
+                )}
             </SafeAreaView>
         </GradientBackground>
     );
@@ -105,7 +154,8 @@ const styles = StyleSheet.create({
     backIcon: { fontSize: FONTS.size.xxl, color: COLORS.textPrimary },
     headerTitle: { fontSize: FONTS.size.xl, fontWeight: FONTS.bold as any, color: COLORS.textPrimary },
     content: { flex: 1, padding: SPACING.lg },
-    section: { mb: SPACING.xxl },
+    loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+    section: { marginBottom: SPACING.xxl },
     sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: SPACING.sm },
     sectionTitle: { fontSize: FONTS.size.lg, fontWeight: FONTS.bold as any, color: COLORS.textPrimary, marginBottom: SPACING.sm },
     card: {
@@ -132,3 +182,4 @@ const styles = StyleSheet.create({
 });
 
 export default MessageTemplatesScreen;
+

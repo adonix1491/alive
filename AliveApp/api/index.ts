@@ -6,7 +6,7 @@
 
 import { VercelRequest, VercelResponse } from '@vercel/node';
 import { db } from './lib/db';
-import { users, checkIns, emergencyContacts, notificationSettings } from './schema/db_schema';
+import { users, checkIns, emergencyContacts, notificationSettings, messageTemplates } from './schema/db_schema';
 import { eq, desc, and } from 'drizzle-orm';
 import {
     hashPassword,
@@ -282,25 +282,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             }
 
             // 檢查用戶是否已綁定資料 (手機 OR EMail OR LineID 至少一項)
-            // 這裡我們需要檢查 users 表和 notificationSettings 表
             const [user] = await db.select().from(users).where(eq(users.id, auth.userId));
-            const [settings] = await db.select().from(notificationSettings).where(eq(notificationSettings.userId, auth.userId));
 
             const hasPhone = !!user.phone;
-            const hasEmail = !!user.email; // 其實註冊必填 email，所以這項通常成立，除非業務邏輯要求"驗證過"的email
-            const hasLine = !!settings?.lineUserId;
-
-            // 如果要求"綁定資料"，通常指"可被通知的管道"
-            // 手機必填? 不一定。 Email? 註冊有。 Line? 連結有。
-            // 使用者需求: "需確認 有無綁定資料 1.手機號碼 2. EMAIL 3.LINE ID 至少一項"
-            // 由於 Email 是註冊必填，理論上這條件永遠成立。
-            // 但如果 "訪客進入" 意思是匿名登入(我們目前沒實作)，那才有可能都不存在。
-            // 或者是要求 "手機號碼" OR "LINE ID" (因為Email可能只是帳號但沒開啟通知)
-
-            // 讓我們嚴格一點：檢查這三個欄位至少有一個是非空的。
-            // user.email is always there.
-            // user.phone check.
-            // settings.lineUserId check.
+            const hasEmail = !!user.email;
+            const hasLine = !!user.lineId; // 使用 user.lineId 判斷
 
             if (!hasPhone && !hasEmail && !hasLine) {
                 return sendError(res, 403, 'PROFILE_INCOMPLETE', '請至少綁定一項聯絡方式 (手機、Email 或 LINE)');
@@ -320,6 +306,66 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 .returning();
 
             return sendSuccess(res, { checkIn }, 201);
+        }
+
+        // ==================== 訊息模板 API ====================
+
+        // GET/POST /api/message-templates
+        if (path === '/message-templates') {
+            const auth = await authenticateRequest(req);
+            if (!auth) {
+                return sendError(res, 401, 'UNAUTHORIZED', '請先登入');
+            }
+
+            if (method === 'GET') {
+                const templates = await db
+                    .select()
+                    .from(messageTemplates)
+                    .where(eq(messageTemplates.userId, auth.userId));
+
+                // Convert array to object map if needed, or return list. 
+                // Front-end implies "Default" matches key "emergency"? 
+                // Let's assume we return a list and frontend matches by type?
+                // Or simplified: Just one custom message? 
+                // User requirement: "Default notification message" (system provided?) and "Custom message".
+                // If "Default" is system hardcoded, we only need to save the "Custom" one.
+                // The frontend screenshot showed "Default" (text) and "Custom" (editable).
+                // Let's assume we store the 'custom' message for the user.
+
+                // If we only need one custom message per user:
+                return sendSuccess(res, { templates });
+            }
+
+            if (method === 'POST') {
+                const { type, title, content } = req.body; // type: 'custom'
+
+                // Upsert logic
+                // Check if exists
+                const existing = await db.select().from(messageTemplates)
+                    .where(and(eq(messageTemplates.userId, auth.userId), eq(messageTemplates.type, type || 'custom')))
+                    .limit(1);
+
+                let result;
+                if (existing.length > 0) {
+                    // @ts-ignore
+                    [result] = await db.update(messageTemplates)
+                        .set({ title, content, updatedAt: new Date() })
+                        .where(eq(messageTemplates.id, existing[0].id))
+                        .returning();
+                } else {
+                    // @ts-ignore
+                    [result] = await db.insert(messageTemplates)
+                        .values({
+                            userId: auth.userId,
+                            type: type || 'custom',
+                            title: title || '自訂訊息',
+                            content,
+                        })
+                        .returning();
+                }
+
+                return sendSuccess(res, { template: result });
+            }
         }
 
         // GET /api/checkin/history

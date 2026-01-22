@@ -11,4 +11,6 @@ export * from './config';
 export * from './authService';
 export * from './checkinService';
 export * from './contactsService';
-export * from './notificationService';
+export { default as messageService } from './messageService';
+export * from './messageService';
+
