@@ -13,6 +13,7 @@ export interface User {
     email: string;
     name: string;
     phoneNumber?: string;
+    lineId?: string; // Added lineId
     avatarUrl?: string;
 }
 
@@ -32,6 +33,7 @@ export interface RegisterParams {
 export interface UpdateProfileParams {
     name?: string;
     phoneNumber?: string;
+    lineId?: string; // Added lineId
 }
 
 /**

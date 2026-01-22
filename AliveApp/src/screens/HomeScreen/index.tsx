@@ -53,11 +53,18 @@ const HomeScreen: React.FC = () => {
             return false;
         }
 
-        // 檢查是否綁定 Email 或手機
-        if (!user.email && !user.phoneNumber) {
+        // 檢查是否綁定 Email 或手機 或 LINE ID
+        // Email 雖然通常是註冊必填，但為了保險起見，我們檢查是否有任一種 "聯絡方式"
+        // 註冊時 Email 必填，所以理論上 user.email 會有值。
+        // 但如果要求 "可即時通知" 的管道，手機或LINE可能更重要。
+        // 使用者需求: "需確認 有無綁定資料 1.手機號碼 2. EMAIL 3.LINE ID 至少一項"
+
+        const hasContactMethod = !!user.email || !!user.phoneNumber || !!user.lineId;
+
+        if (!hasContactMethod) {
             Alert.alert(
                 '資料未完善',
-                '為了確保緊急時刻能聯繫到您，請先綁定 Email 或手機號碼。',
+                '為了確保緊急時刻能聯繫到您，請先綁定 Email、手機號碼或 LINE ID。',
                 [
                     { text: '稍後再說', style: 'cancel' },
                     {
