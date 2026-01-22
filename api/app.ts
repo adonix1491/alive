@@ -17,6 +17,43 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Debug Middleware
+app.use((req, res, next) => {
+    console.log(`[Request] ${req.method} ${req.url}`);
+    next();
+});
+
+// Health check (Support both paths)
+const healthHandler = (req: Request, res: Response) => {
+    res.json({
+        status: 'ok',
+        message: 'ALIVE Backend is running',
+        path: req.path,
+        url: req.url,
+        originalUrl: req.originalUrl
+    });
+};
+
+app.get('/health', healthHandler);
+app.get('/api/health', healthHandler);
+
+// Debug Route for 404 diagnosis
+app.all('*', (req, res, next) => {
+    // 如果請求的是其他已定義的 API，讓它通過
+    if (req.path.startsWith('/api/auth') || req.path.startsWith('/api/user')) {
+        return next();
+    }
+
+    // 否則回傳調試資訊而不是預設 404 HTML
+    res.status(404).json({
+        error: 'Not Found (Express Catch-All)',
+        receivedUrl: req.url,
+        receivedPath: req.path,
+        originalUrl: req.originalUrl,
+        method: req.method
+    });
+});
+
 // 認證中介層
 async function authenticate(req: any, res: Response, next: NextFunction) {
     const authHeader = req.headers.authorization;
@@ -33,11 +70,6 @@ async function authenticate(req: any, res: Response, next: NextFunction) {
     req.userId = decoded.userId;
     next();
 }
-
-// Health check
-app.get('/api/health', (req, res) => {
-    res.json({ status: 'ok', message: 'ALIVE Backend is running' });
-});
 
 // ==================== 認證 API ====================
 
