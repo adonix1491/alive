@@ -1,3 +1,17 @@
 {
-    "version": 2
+    "version": 2,
+    "buildCommand": "cd AliveApp && npm install && npm run build",
+    "outputDirectory": "AliveApp/web-build",
+    "builds": [
+        {
+            "src": "backend/api/**/*.ts",
+            "use": "@vercel/node"
+        }
+    ],
+    "rewrites": [
+        {
+            "source": "/api/:path*",
+            "destination": "/backend/api/:path*"
+        }
+    ]
 }
