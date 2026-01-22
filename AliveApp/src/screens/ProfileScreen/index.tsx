@@ -16,6 +16,7 @@ import {
 import { GradientBackground } from '../../components';
 import { COLORS, FONTS, SPACING, RADIUS, SHADOWS } from '../../theme';
 import { APP_INFO } from '../../constants';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface MenuItem {
     id: string;
@@ -31,14 +32,7 @@ interface MenuItem {
  * 個人中心頁面
  */
 const ProfileScreen: React.FC = () => {
-    // 模擬用戶資料
-    const [user] = useState({
-        name: '王小明',
-        email: 'xiaoming@example.com',
-        phone: '0912****678',
-        checkInStreak: 15,
-        totalCheckIns: 45,
-    });
+    const { user, logout } = useAuth();
 
     /**
      * 處理登出
@@ -52,9 +46,9 @@ const ProfileScreen: React.FC = () => {
                 {
                     text: '登出',
                     style: 'destructive',
-                    onPress: () => {
-                        // TODO: 實作登出邏輯
-                        Alert.alert('提示', '已登出');
+                    onPress: async () => {
+                        await logout();
+                        // 登出後會自動導航到登入頁面（由 AuthContext 處理）
                     },
                 },
             ]
