@@ -11,7 +11,7 @@ export const users = pgTable('users', {
     email: text('email').notNull().unique(),
     password: text('password').notNull(),
     name: text('name').notNull(),
-    phone: text('phone'),
+    phoneNumber: text('phone_number'),
     avatarUrl: text('avatar_url'),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
@@ -23,9 +23,10 @@ export const users = pgTable('users', {
 export const checkIns = pgTable('check_ins', {
     id: serial('id').primaryKey(),
     userId: integer('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
-    timestamp: timestamp('timestamp').defaultNow().notNull(),
-    status: text('status').notNull(), // 'completed', 'missed', 'pending'
-    location: jsonb('location'), // { latitude, longitude }
+    checkedAt: timestamp('checked_at').defaultNow().notNull(),
+    latitude: text('latitude'),
+    longitude: text('longitude'),
+    note: text('note'),
 });
 
 /**
@@ -35,11 +36,9 @@ export const emergencyContacts = pgTable('emergency_contacts', {
     id: serial('id').primaryKey(),
     userId: integer('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
     name: text('name').notNull(),
-    phone: text('phone').notNull(),
+    phoneNumber: text('phone_number').notNull(),
     email: text('email'),
     relationship: text('relationship'),
-    priority: integer('priority').notNull(),
-    isEnabled: boolean('is_enabled').default(true).notNull(),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
@@ -51,12 +50,11 @@ export const notificationSettings = pgTable('notification_settings', {
     id: serial('id').primaryKey(),
     userId: integer('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull().unique(),
     emailEnabled: boolean('email_enabled').default(false).notNull(),
-    emailAddress: text('email_address'),
-    emailVerified: boolean('email_verified').default(false).notNull(),
+    notificationEmail: text('notification_email'),
+    emailVerificationCode: text('email_verification_code'),
+    emailVerificationExpiresAt: timestamp('email_verification_expires_at'),
+    emailVerificationSentAt: timestamp('email_verification_sent_at'),
     lineEnabled: boolean('line_enabled').default(false).notNull(),
-    lineUserId: text('line_user_id'),
-    lineVerified: boolean('line_verified').default(false).notNull(),
-    pushEnabled: boolean('push_enabled').default(true).notNull(),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
