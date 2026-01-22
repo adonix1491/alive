@@ -36,16 +36,18 @@ const HomeScreen: React.FC = () => {
     /**
      * 檢查個人資料完整性
      * 簽到前必須確保用戶已綁定至少一種聯絡方式
+     * return true = 通過檢查, false = 不通過
      */
     const checkProfileCompletion = useCallback(() => {
+        // 1. 訪客檢查 (未登入)
         if (!user) {
             Alert.alert(
-                '請先登入',
-                '為了記錄您的安全狀態，請先登入或註冊帳號。',
+                '訪客模式',
+                '簽到功能需要先登入或註冊會員。\n(已註冊者請點擊「前往登入」)',
                 [
                     { text: '取消', style: 'cancel' },
                     {
-                        text: '前往登入',
+                        text: '前往登入/註冊',
                         onPress: () => navigation.navigate('Auth')
                     }
                 ]
@@ -53,23 +55,19 @@ const HomeScreen: React.FC = () => {
             return false;
         }
 
-        // 檢查是否綁定 Email 或手機 或 LINE ID
-        // Email 雖然通常是註冊必填，但為了保險起見，我們檢查是否有任一種 "聯絡方式"
-        // 註冊時 Email 必填，所以理論上 user.email 會有值。
-        // 但如果要求 "可即時通知" 的管道，手機或LINE可能更重要。
-        // 使用者需求: "需確認 有無綁定資料 1.手機號碼 2. EMAIL 3.LINE ID 至少一項"
-
+        // 2. 資料綁定檢查 (手機 或 Email 或 LINE ID)
+        // 確保至少有一種聯絡方式
         const hasContactMethod = !!user.email || !!user.phoneNumber || !!user.lineId;
 
         if (!hasContactMethod) {
             Alert.alert(
-                '資料未完善',
-                '為了確保緊急時刻能聯繫到您，請先綁定 Email、手機號碼或 LINE ID。',
+                '需要綁定資料',
+                '為了能夠完成簽到，請至少綁定一種聯絡方式：\n1. 手機號碼\n2. Email\n3. LINE ID',
                 [
                     { text: '稍後再說', style: 'cancel' },
                     {
-                        text: '前往綁定',
-                        onPress: () => navigation.navigate('Auth') // 或導航至 Profile 设置页
+                        text: '前往設定頁',
+                        onPress: () => navigation.navigate('Profile')
                     }
                 ]
             );
