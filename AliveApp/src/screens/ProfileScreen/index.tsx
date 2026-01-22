@@ -31,10 +31,15 @@ interface MenuItem {
     danger?: boolean;
 }
 
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../../types';
+
 /**
  * 個人中心頁面
  */
 const ProfileScreen: React.FC = () => {
+    const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
     const { user, logout, refreshUser } = useAuth();
 
     // 編輯模式狀態
@@ -142,7 +147,7 @@ const ProfileScreen: React.FC = () => {
                 icon: '💬',
                 title: '訊息模板',
                 subtitle: '自訂通知訊息',
-                onPress: () => Alert.alert('提示', '前往訊息模板'),
+                onPress: () => navigation.navigate('MessageTemplates'),
                 showArrow: true,
             },
             {
