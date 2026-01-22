@@ -538,6 +538,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 分鐘後過期
 
             // 更新設定
+            // @ts-ignore
             await db
                 .update(notificationSettings)
                 .set({
