@@ -612,13 +612,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     } catch (error: any) {
         console.error('API Error:', error);
-        return res.status(500).json({
-            error: {
-                code: 'INTERNAL_ERROR',
-                message: error.message || '伺服器錯誤',
-                stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
-                details: error
-            }
-        });
+        return sendError(res, 500, 'INTERNAL_ERROR', '伺服器錯誤');
     }
 }
