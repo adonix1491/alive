@@ -15,35 +15,52 @@ import {
 import { CheckInButton, StatusCard, GradientBackground } from '../../components';
 import { COLORS, FONTS, SPACING, RADIUS, SHADOWS } from '../../theme';
 import { APP_INFO } from '../../constants';
+import { checkinService } from '../../services/api';
+import { useAuth } from '../../contexts/AuthContext';
 
 /**
  * 首頁畫面
  * 核心功能：一鍵簽到、顯示安全狀態、緊急聯絡人資訊
  */
 const HomeScreen: React.FC = () => {
+    const { user } = useAuth();
     const [isCheckedIn, setIsCheckedIn] = useState(false);
     const [lastCheckInTime, setLastCheckInTime] = useState<Date | null>(null);
+    const [isLoading, setIsLoading] = useState(false);
 
     /**
      * 處理簽到動作
-     * 更新簽到狀態並記錄時間
+     * 使用真實 API 建立簽到記錄
      */
-    const handleCheckIn = useCallback(() => {
+    const handleCheckIn = useCallback(async () => {
         if (isCheckedIn) {
             Alert.alert('已簽到', '您今天已經完成簽到了！');
             return;
         }
 
-        setIsCheckedIn(true);
-        setLastCheckInTime(new Date());
+        setIsLoading(true);
 
-        Alert.alert(
-            '簽到成功！',
-            '您的平安已通知給緊急聯絡人。',
-            [{ text: '確定', style: 'default' }]
-        );
+        // 呼叫簽到 API
+        const response = await checkinService.createCheckIn();
 
-        // TODO: 同步至 Firebase
+        setIsLoading(false);
+
+        if (response.data) {
+            setIsCheckedIn(true);
+            setLastCheckInTime(new Date(response.data.checkIn.timestamp));
+
+            Alert.alert(
+                '簽到成功！',
+                '您的平安已記錄。',
+                [{ text: '確定', style: 'default' }]
+            );
+        } else {
+            Alert.alert(
+                '簽到失敗',
+                response.error?.message || '請稍後再試',
+                [{ text: '確定', style: 'cancel' }]
+            );
+        }
     }, [isCheckedIn]);
 
     /**
@@ -102,6 +119,7 @@ const HomeScreen: React.FC = () => {
                         <CheckInButton
                             isCheckedIn={isCheckedIn}
                             onPress={handleCheckIn}
+                            disabled={isLoading}
                         />
                         {lastCheckInTime && (
                             <Text style={styles.lastCheckInText}>
