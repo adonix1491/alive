@@ -12,6 +12,7 @@ export const users = pgTable('users', {
     password: text('password').notNull(),
     name: text('name').notNull(),
     phone: text('phone'),
+    lineId: text('line_id'),
     avatarUrl: text('avatar_url'),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
@@ -37,6 +38,7 @@ export const emergencyContacts = pgTable('emergency_contacts', {
     name: text('name').notNull(),
     phone: text('phone').notNull(),
     email: text('email'),
+    lineId: text('line_id'),
     relationship: text('relationship'),
     priority: integer('priority').notNull(),
     isEnabled: boolean('is_enabled').default(true).notNull(),
@@ -72,4 +74,18 @@ export const lineBindings = pgTable('line_bindings', {
     verified: boolean('verified').default(false).notNull(),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     verifiedAt: timestamp('verified_at'),
+});
+
+/**
+ * 訊息模板表
+ */
+export const messageTemplates = pgTable('message_templates', {
+    id: serial('id').primaryKey(),
+    userId: integer('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+    type: text('type').notNull(), // 'custom', 'check_in', 'emergency'
+    title: text('title'),
+    content: text('content').notNull(),
+    isDefault: boolean('is_default').default(false),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
