@@ -104,11 +104,26 @@ const HomeScreen: React.FC = () => {
                 [{ text: '確定', style: 'default' }]
             );
         } else {
-            Alert.alert(
-                '簽到失敗',
-                response.error?.message || '請稍後再試',
-                [{ text: '確定', style: 'cancel' }]
-            );
+            // 處理 403 資料不全錯誤
+            if (response.error?.code === 'PROFILE_INCOMPLETE') {
+                Alert.alert(
+                    '資料未完善',
+                    '簽到前請至少綁定一項聯絡方式 (手機、Email 或 LINE)，以確保緊急時刻能通知到您。',
+                    [
+                        { text: '稍後再說', style: 'cancel' },
+                        {
+                            text: '前往綁定',
+                            onPress: () => navigation.navigate('Profile') // 或跳轉到 Profile 編輯 Modal
+                        }
+                    ]
+                );
+            } else {
+                Alert.alert(
+                    '簽到失敗',
+                    response.error?.message || '請稍後再試',
+                    [{ text: '確定', style: 'cancel' }]
+                );
+            }
         }
     }, [isCheckedIn, checkProfileCompletion]);
 

@@ -13,6 +13,7 @@ export interface EmergencyContact {
     name: string;
     phone: string;
     email?: string;
+    lineId?: string;
     relationship?: string;
     priority: number;
     isEnabled: boolean;
@@ -25,6 +26,7 @@ export interface CreateContactParams {
     name: string;
     phone: string;
     email?: string;
+    lineId?: string;
     relationship?: string;
     priority: number;
 }
@@ -36,6 +38,7 @@ export interface UpdateContactParams {
     name?: string;
     phone?: string;
     email?: string;
+    lineId?: string;
     relationship?: string;
     priority?: number;
     isEnabled?: boolean;
