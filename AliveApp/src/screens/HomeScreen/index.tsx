@@ -59,10 +59,18 @@ const HomeScreen: React.FC = () => {
         // 確保至少有一種聯絡方式
         const hasContactMethod = !!user.email || !!user.phoneNumber || !!user.lineId;
 
+        // DEBUG: 打印檢查結果
+        console.log('Profile Check:', {
+            email: !!user.email,
+            phone: !!user.phoneNumber,
+            line: !!user.lineId,
+            result: hasContactMethod
+        });
+
         if (!hasContactMethod) {
             Alert.alert(
                 '需要綁定資料',
-                '為了能夠完成簽到，請至少綁定一種聯絡方式：\n1. 手機號碼\n2. Email\n3. LINE ID',
+                `為了能夠完成簽到，請至少綁定一種聯絡方式：\n1. 手機號碼 ${user.phoneNumber ? '(已綁定)' : '(未綁定)'}\n2. Email ${user.email ? '(已綁定)' : '(未綁定)'}\n3. LINE ID ${user.lineId ? '(已綁定)' : '(未綁定)'}`,
                 [
                     { text: '稍後再說', style: 'cancel' },
                     {
@@ -94,41 +102,45 @@ const HomeScreen: React.FC = () => {
 
         setIsLoading(true);
 
-        // 呼叫簽到 API
-        const response = await checkinService.createCheckIn();
+        try {
+            // 呼叫簽到 API
+            const response = await checkinService.createCheckIn();
 
-        setIsLoading(false);
+            if (response.data) {
+                setIsCheckedIn(true);
+                setLastCheckInTime(new Date(response.data.checkIn.timestamp));
 
-        if (response.data) {
-            setIsCheckedIn(true);
-            setLastCheckInTime(new Date(response.data.checkIn.timestamp));
-
-            Alert.alert(
-                '簽到成功！',
-                '您的平安已記錄。',
-                [{ text: '確定', style: 'default' }]
-            );
-        } else {
-            // 處理 403 資料不全錯誤
-            if (response.error?.code === 'PROFILE_INCOMPLETE') {
                 Alert.alert(
-                    '資料未完善',
-                    '簽到前請至少綁定一項聯絡方式 (手機、Email 或 LINE)，以確保緊急時刻能通知到您。',
-                    [
-                        { text: '稍後再說', style: 'cancel' },
-                        {
-                            text: '前往綁定',
-                            onPress: () => navigation.navigate('Profile') // 或跳轉到 Profile 編輯 Modal
-                        }
-                    ]
+                    '簽到成功！',
+                    '您的平安已記錄。',
+                    [{ text: '確定', style: 'default' }]
                 );
             } else {
-                Alert.alert(
-                    '簽到失敗',
-                    response.error?.message || '請稍後再試',
-                    [{ text: '確定', style: 'cancel' }]
-                );
+                // 處理 403 資料不全錯誤
+                if (response.error?.code === 'PROFILE_INCOMPLETE') {
+                    Alert.alert(
+                        '資料未完善 (伺服器回應)',
+                        '簽到前請至少綁定一項聯絡方式 (手機、Email 或 LINE)，以確保緊急時刻能通知到您。',
+                        [
+                            { text: '稍後再說', style: 'cancel' },
+                            {
+                                text: '前往綁定',
+                                onPress: () => navigation.navigate('Profile') // 或跳轉到 Profile 編輯 Modal
+                            }
+                        ]
+                    );
+                } else {
+                    Alert.alert(
+                        '簽到失敗',
+                        `錯誤代碼: ${response.error?.code}\n訊息: ${response.error?.message}`,
+                        [{ text: '確定', style: 'cancel' }]
+                    );
+                }
             }
+        } catch (err: any) {
+            Alert.alert('發生例外錯誤', err.message);
+        } finally {
+            setIsLoading(false);
         }
     }, [isCheckedIn, checkProfileCompletion]);
 
@@ -261,8 +273,21 @@ const HomeScreen: React.FC = () => {
                         </TouchableOpacity>
                     </View>
                     <Text style={styles.footerCopyright}>
-                        © 2026 ALIVE. All rights reserved. (Build: 2026.01.22-Fixed)
+                        © 2026 ALIVE. All rights reserved. (Build: 2026.01.22-DebugMode)
                     </Text>
+                    {/* Debug Info Overlay */}
+                    <View style={{ marginTop: 20, padding: 10, backgroundColor: '#eee', borderRadius: 8 }}>
+                        <Text style={{ fontWeight: 'bold' }}>DEBUG INFO</Text>
+                        <Text style={{ fontSize: 10, fontFamily: 'monospace' }}>
+                            UID: {user?.id || 'null'} | Name: {user?.name || 'null'}
+                        </Text>
+                        <Text style={{ fontSize: 10, fontFamily: 'monospace' }}>
+                            Email: {user?.email ? 'YES' : 'NO'} | Phone: {user?.phoneNumber ? 'YES' : 'NO'} | Line: {user?.lineId ? 'YES' : 'NO'}
+                        </Text>
+                        <Text style={{ fontSize: 10, fontFamily: 'monospace' }}>
+                            CheckIn: {isCheckedIn ? 'TRUE' : 'FALSE'}
+                        </Text>
+                    </View>
                 </View>
             </SafeAreaView>
         </GradientBackground>
