@@ -79,5 +79,13 @@ module.exports = {
         historyApiFallback: true,
         hot: true,
         port: 3000,
+        proxy: [
+            {
+                context: ['/api'],
+                target: 'https://alive-iota.vercel.app',
+                changeOrigin: true,
+                secure: true,
+            },
+        ],
     },
 };
