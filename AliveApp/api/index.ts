@@ -321,9 +321,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 .insert(checkIns)
                 .values({
                     userId: auth.userId,
-                    latitude: latitude || null,
-                    longitude: longitude || null,
-                    note: note || null,
+                    status: 'completed',
+                    location: { latitude, longitude, note }, // Inserting note into JSON since column is missing
+                    timestamp: new Date()
                 })
                 .returning();
 
@@ -345,7 +345,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 .select()
                 .from(checkIns)
                 .where(eq(checkIns.userId, auth.userId))
-                .orderBy(desc(checkIns.checkedAt))
+                .orderBy(desc(checkIns.timestamp))
                 .limit(limitNum)
                 .offset(offsetNum);
 
