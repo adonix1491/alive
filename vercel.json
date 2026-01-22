@@ -9,8 +9,12 @@
             "destination": "/api"
         },
         {
+            "source": "/bundle.web.js",
+            "destination": "/AliveApp/dist/bundle.web.js"
+        },
+        {
             "source": "/(.*)",
-            "destination": "/AliveApp/public/index.html"
+            "destination": "/AliveApp/dist/index.html"
         }
     ]
 }
