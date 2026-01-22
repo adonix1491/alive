@@ -156,6 +156,13 @@ const AppNavigator: React.FC = () => {
                     }}
                 />
                 <Stack.Screen
+                    name={ROUTES.MESSAGE_TEMPLATES}
+                    component={MessageTemplatesScreen}
+                    options={{
+                        animation: 'slide_from_right',
+                    }}
+                />
+                <Stack.Screen
                     name={ROUTES.ANOMALY_RULES}
                     component={AnomalyRulesScreen}
                     options={{

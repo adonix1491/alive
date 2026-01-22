@@ -41,12 +41,14 @@ const ProfileScreen: React.FC = () => {
     const [isEditModalVisible, setIsEditModalVisible] = useState(false);
     const [editName, setEditName] = useState('');
     const [editPhone, setEditPhone] = useState('');
+    const [editLineId, setEditLineId] = useState('');
     const [isUpdating, setIsUpdating] = useState(false);
 
     // 初始化編輯資料
     const openEditModal = () => {
         setEditName(user?.name || '');
         setEditPhone(user?.phoneNumber || '');
+        setEditLineId(user?.lineId || '');
         setIsEditModalVisible(true);
     };
 
@@ -64,6 +66,7 @@ const ProfileScreen: React.FC = () => {
             const response = await authService.updateProfile({
                 name: editName,
                 phoneNumber: editPhone,
+                lineId: editLineId,
             });
 
             if (response.data) {
@@ -252,6 +255,9 @@ const ProfileScreen: React.FC = () => {
                                 {user.phoneNumber && (
                                     <Text style={styles.userPhone}>{user.phoneNumber}</Text>
                                 )}
+                                {user.lineId && (
+                                    <Text style={[styles.userPhone, { color: COLORS.success }]}>LINE: {user.lineId}</Text>
+                                )}
 
                                 {/* 統計數據 */}
                                 <View style={styles.statsContainer}>
@@ -313,13 +319,21 @@ const ProfileScreen: React.FC = () => {
                                 placeholder="請輸入姓名"
                             />
 
-                            <Text style={styles.inputLabel}>電話</Text>
                             <TextInput
                                 style={styles.input}
                                 value={editPhone}
                                 onChangeText={setEditPhone}
                                 placeholder="請輸入電話號碼"
                                 keyboardType="phone-pad"
+                            />
+
+                            <Text style={styles.inputLabel}>LINE ID</Text>
+                            <TextInput
+                                style={styles.input}
+                                value={editLineId}
+                                onChangeText={setEditLineId}
+                                placeholder="請輸入 LINE ID (選填)"
+                                autoCapitalize="none"
                             />
 
                             <View style={styles.modalButtons}>

@@ -237,12 +237,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                         name: user.name,
                         email: user.email,
                         phoneNumber: user.phone,
+                        lineId: user.lineId,
                     }
                 });
             }
 
             if (method === 'PUT') {
-                const { name, phoneNumber } = req.body;
+                const { name, phoneNumber, lineId } = req.body;
 
                 if (!name) {
                     return sendError(res, 400, 'INVALID_INPUT', '姓名為必填');
@@ -254,6 +255,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                     .set({
                         name,
                         phone: phoneNumber || null,
+                        lineId: lineId || null,
                     })
                     .where(eq(users.id, auth.userId))
                     .returning();
@@ -264,6 +266,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                         name: updatedUser.name,
                         email: updatedUser.email,
                         phoneNumber: updatedUser.phone,
+                        lineId: updatedUser.lineId,
                     }
                 });
             }
