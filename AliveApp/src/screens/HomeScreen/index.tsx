@@ -260,6 +260,9 @@ const HomeScreen: React.FC = () => {
                             <Text style={styles.footerLink}>隱私政策</Text>
                         </TouchableOpacity>
                     </View>
+                    <Text style={styles.footerCopyright}>
+                        © 2026 ALIVE. All rights reserved. (Build: 2026.01.22-Fixed)
+                    </Text>
                 </View>
             </SafeAreaView>
         </GradientBackground>
@@ -382,6 +385,12 @@ const styles = StyleSheet.create({
         fontSize: FONTS.size.xs,
         color: COLORS.textLight,
         marginHorizontal: SPACING.xs,
+    },
+    footerCopyright: {
+        fontSize: FONTS.size.xs,
+        color: COLORS.textLight,
+        marginTop: SPACING.xs,
+        fontWeight: 'bold',
     },
 });
 
