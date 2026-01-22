@@ -68,13 +68,9 @@ const ProfileScreen: React.FC = () => {
 
             if (response.data) {
                 // 重新獲取用戶資料以更新 Context
-                const { useAuth } = require('../../contexts/AuthContext');
-                // 注意：這裡不能違反 Hook 規則，我們已經在上方解構了 user 和 logout
-                // 但我們需要 refreshUser。讓我們修改上方的解構。
-
+                await refreshUser();
                 Alert.alert('成功', '個人資料已更新');
                 setIsEditModalVisible(false);
-                // 這裡需要重新整理用戶資料，稍後修正 useAuth 解構
             } else {
                 Alert.alert('失敗', response.error?.message || '更新失敗');
             }

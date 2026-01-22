@@ -17,11 +17,13 @@ import {
 import { GradientBackground } from '../../components';
 import { COLORS, FONTS, SPACING, RADIUS, SHADOWS } from '../../theme';
 import { APP_INFO } from '../../constants';
+import { useAuth } from '../../contexts/AuthContext';
 
 /**
  * 登入頁面
  */
 const LoginScreen: React.FC = () => {
+    const { login } = useAuth();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -38,11 +40,15 @@ const LoginScreen: React.FC = () => {
         setIsLoading(true);
 
         try {
-            // TODO: 實作 Firebase 登入
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            Alert.alert('成功', '登入成功！');
+            const result = await login(email, password);
+            if (result.success) {
+                // 登入成功，Navigation 會自動根據 isAuthenticated 狀態切換路由
+                // 無需手動導航
+            } else {
+                Alert.alert('登入失敗', result.error || '請檢查您的憑證');
+            }
         } catch (error) {
-            Alert.alert('錯誤', '登入失敗，請檢查您的憑證');
+            Alert.alert('錯誤', '登入過程中發生異常');
         } finally {
             setIsLoading(false);
         }
