@@ -35,7 +35,7 @@ async function authenticate(req: any, res: Response, next: NextFunction) {
 }
 
 // Health check
-app.get('/health', (req, res) => {
+app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', message: 'ALIVE Backend is running' });
 });
 
