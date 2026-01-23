@@ -8,7 +8,7 @@ async function checkFrontend() {
 
     try {
         // 1. Fetch index.html first to find the bundle URL
-        const htmlRes = await fetch(BASE_URL);
+        const htmlRes = await fetch(BASE_URL + '?t=' + Date.now());
         if (!htmlRes.ok) throw new Error(`Failed to fetch index.html: ${htmlRes.status}`);
 
         const htmlContent = await htmlRes.text();
@@ -44,11 +44,12 @@ async function checkFrontend() {
 
         // Check for specific strings we added recently
         const checks = [
-            { term: '訪客模式', desc: 'Guest Mode Alert' },
+            { term: '訪客模式', desc: 'Guest Status Card' },
             { term: 'MessageTemplates', desc: 'Navigation Fix' },
             { term: 'lineId', desc: 'LineID support' },
-            { term: '訪客快速簽到', desc: 'Guest Login UI' },
-            { term: '啟用訪客模式', desc: 'Enable Guest Button' },
+            { term: '確認並簽到', desc: 'Modal Button' },
+            { term: '尚未啟用', desc: 'Status Subtitle' },
+            { term: 'LAZY-V1', desc: 'Version Tag' },
         ];
 
         console.log('\n🧪 Testing Content:');

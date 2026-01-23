@@ -12,6 +12,9 @@ import {
     TouchableOpacity,
     Alert,
     TextInput,
+    Modal,
+    KeyboardAvoidingView,
+    Platform,
 } from 'react-native';
 import { CheckInButton, StatusCard, GradientBackground } from '../../components';
 import { COLORS, FONTS, SPACING, RADIUS, SHADOWS } from '../../theme';
@@ -36,6 +39,7 @@ const HomeScreen: React.FC = () => {
     const [guestPhone, setGuestPhone] = useState('');
     const [guestName, setGuestName] = useState('');
     const [debugToken, setDebugToken] = useState<string | null>(null);
+    const [isGuestModalVisible, setIsGuestModalVisible] = useState(false);
 
     React.useEffect(() => {
         checkinService.getToken().then(t => setDebugToken(t));
@@ -49,14 +53,9 @@ const HomeScreen: React.FC = () => {
     const checkProfileCompletion = useCallback(() => {
         // 1. 訪客檢查 (未登入)
         // 1. 訪客檢查 (未登入)
+        // 1. 訪客檢查 (未登入) - 改為觸發 Modal
         if (!user) {
-            Alert.alert(
-                '請先啟用訪客模式',
-                '請在上方輸入手機號碼以啟用簽到功能。',
-                [
-                    { text: '好', style: 'default' }
-                ]
-            );
+            setIsGuestModalVisible(true);
             return false;
         }
 
@@ -188,9 +187,15 @@ const HomeScreen: React.FC = () => {
         try {
             const result = await guestLogin(guestPhone, guestName);
             if (result.success) {
-                Alert.alert('歡迎', '訪客模式已啟用，您現在可以進行簽到了！');
+                // Login success, close modal and trigger check-in automatically
+                setIsGuestModalVisible(false);
                 setGuestPhone('');
                 setGuestName('');
+                Alert.alert(
+                    '歡迎',
+                    '已自動登入！請再次點擊「簽到」按鈕以完成今日簽到。',
+                    [{ text: '好', onPress: () => handleCheckIn() }]
+                );
             } else {
                 Alert.alert('登入失敗', result.error);
             }
@@ -272,32 +277,14 @@ const HomeScreen: React.FC = () => {
 
                         {/* 訪客登入 或 緊急聯絡人卡片 */}
                         {(!user || !user.id) ? (
-                            <View style={styles.guestFormCard}>
-                                <Text style={styles.guestFormTitle}>訪客快速簽到</Text>
-                                <Text style={styles.guestFormSubtitle}>輸入手機號碼即可啟用簽到功能</Text>
-                                <TextInput
-                                    style={styles.guestInput}
-                                    placeholder="您的手機號碼"
-                                    placeholderTextColor={COLORS.textLight}
-                                    value={guestPhone}
-                                    onChangeText={setGuestPhone}
-                                    keyboardType="phone-pad"
-                                />
-                                <TextInput
-                                    style={styles.guestInput}
-                                    placeholder="您的暱稱 (選填)"
-                                    placeholderTextColor={COLORS.textLight}
-                                    value={guestName}
-                                    onChangeText={setGuestName}
-                                />
-                                <TouchableOpacity
-                                    style={styles.guestButton}
-                                    onPress={handleGuestLogin}
-                                    disabled={isLoading}
-                                >
-                                    <Text style={styles.guestButtonText}>啟用訪客模式</Text>
-                                </TouchableOpacity>
-                            </View>
+                            <StatusCard
+                                title="訪客模式"
+                                subtitle="尚未啟用 (點擊簽到以啟用)"
+                                variant="warning"
+                                onPress={() => setIsGuestModalVisible(true)}
+                                rightContent={<Text style={styles.arrowIcon}>›</Text>}
+                                style={styles.card}
+                            />
                         ) : (
                             <StatusCard
                                 title="緊急聯絡人"
@@ -334,7 +321,7 @@ const HomeScreen: React.FC = () => {
                         </TouchableOpacity>
                     </View>
                     <Text style={styles.footerCopyright}>
-                        © 2026 ALIVE. All rights reserved. (Build: 2026.01.22-DebugMode)
+                        © 2026 ALIVE. All rights reserved. (Build: 2026.01.23-LAZY-V1)
                     </Text>
                     {/* Debug Info Overlay */}
                     <View style={{ marginTop: 20, padding: 10, backgroundColor: '#eee', borderRadius: 8 }}>
@@ -350,8 +337,67 @@ const HomeScreen: React.FC = () => {
                         </Text>
                     </View>
                 </View>
+                {/* Guest Login Modal */}
+                <Modal
+                    visible={isGuestModalVisible}
+                    transparent={true}
+                    animationType="slide"
+                    onRequestClose={() => setIsGuestModalVisible(false)}
+                >
+                    <KeyboardAvoidingView
+                        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                        style={styles.modalOverlay}
+                    >
+                        <View style={styles.modalContent}>
+                            <View style={styles.modalHeader}>
+                                <Text style={styles.modalTitle}>訪客快速簽到</Text>
+                                <TouchableOpacity
+                                    onPress={() => setIsGuestModalVisible(false)}
+                                    style={styles.closeButton}
+                                >
+                                    <Text style={styles.closeButtonText}>✕</Text>
+                                </TouchableOpacity>
+                            </View>
+
+                            <Text style={styles.modalSubtitle}>
+                                請輸入您的手機號碼以綁定身份。\n僅需輸入一次，系統將自動記錄。
+                            </Text>
+
+                            <Text style={styles.inputLabel}>手機號碼 (必填)</Text>
+                            <TextInput
+                                style={styles.guestInput}
+                                placeholder="例：0912345678"
+                                placeholderTextColor={COLORS.textLight}
+                                value={guestPhone}
+                                onChangeText={setGuestPhone}
+                                keyboardType="phone-pad"
+                            />
+
+                            <Text style={styles.inputLabel}>您的稱呼 (選填)</Text>
+                            <TextInput
+                                style={styles.guestInput}
+                                placeholder="例：陳先生/小姐"
+                                placeholderTextColor={COLORS.textLight}
+                                value={guestName}
+                                onChangeText={setGuestName}
+                            />
+
+                            <TouchableOpacity
+                                style={styles.guestButton}
+                                onPress={handleGuestLogin}
+                                disabled={isLoading}
+                            >
+                                {isLoading ? (
+                                    <Text style={styles.guestButtonText}>處理中...</Text>
+                                ) : (
+                                    <Text style={styles.guestButtonText}>確認並簽到</Text>
+                                )}
+                            </TouchableOpacity>
+                        </View>
+                    </KeyboardAvoidingView>
+                </Modal>
             </SafeAreaView>
-        </GradientBackground>
+        </GradientBackground >
     );
 };
 
@@ -517,6 +563,48 @@ const styles = StyleSheet.create({
         color: COLORS.white,
         fontWeight: FONTS.bold as any,
         fontSize: FONTS.size.md,
+    },
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.5)',
+        justifyContent: 'center',
+        padding: SPACING.lg,
+    },
+    modalContent: {
+        backgroundColor: COLORS.white,
+        borderRadius: RADIUS.lg,
+        padding: SPACING.xl,
+        ...SHADOWS.lg,
+    },
+    modalHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: SPACING.md,
+    },
+    modalTitle: {
+        fontSize: FONTS.size.xl,
+        fontWeight: FONTS.bold as any,
+        color: COLORS.textPrimary,
+    },
+    modalSubtitle: {
+        fontSize: FONTS.size.sm,
+        color: COLORS.textSecondary,
+        marginBottom: SPACING.lg,
+        lineHeight: 20,
+    },
+    closeButton: {
+        padding: SPACING.xs,
+    },
+    closeButtonText: {
+        fontSize: FONTS.size.lg,
+        color: COLORS.textLight,
+    },
+    inputLabel: {
+        fontSize: FONTS.size.sm,
+        color: COLORS.textSecondary,
+        marginBottom: SPACING.xs,
+        marginTop: SPACING.sm,
     },
 });
 
