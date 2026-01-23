@@ -190,7 +190,79 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 },
             });
         }
+        // POST /api/auth/guest-login
+        if (path === '/auth/guest-login' && method === 'POST') {
+            const { phoneNumber, name } = req.body;
 
+            if (!phoneNumber) {
+                return sendError(res, 400, 'INVALID_INPUT', '手機號碼為必填');
+            }
+
+            // 嘗試尋找現有用戶 (By Phone)
+            const existingUsers = await db
+                .select()
+                .from(users)
+                .where(eq(users.phone, phoneNumber))
+                .limit(1);
+
+            let user = existingUsers[0];
+
+            if (!user) {
+                // 創建新 Guest 用戶
+                const guestEmail = `guest_${phoneNumber}@alive.app`;
+
+                // 檢查 Email 是否已存在
+                const emailCheck = await db
+                    .select()
+                    .from(users)
+                    .where(eq(users.email, guestEmail))
+                    .limit(1);
+
+                if (emailCheck.length > 0) {
+                    user = emailCheck[0];
+                } else {
+                    const randomPassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8);
+                    const hashedPassword = await hashPassword(randomPassword);
+                    const userName = name || `Guest ${phoneNumber.slice(-4)}`;
+
+                    // @ts-ignore
+                    const [newUser] = await db
+                        .insert(users)
+                        .values({
+                            name: userName,
+                            email: guestEmail,
+                            password: hashedPassword,
+                            // @ts-ignore
+                            phone: phoneNumber,
+                        })
+                        .returning();
+                    user = newUser;
+
+                    // 建立預設通知設定
+                    // @ts-ignore
+                    await db.insert(notificationSettings).values({
+                        userId: user.id,
+                        emailEnabled: false,
+                        lineEnabled: false,
+                        pushEnabled: true
+                    });
+                }
+            }
+
+            const token = generateToken(user.id);
+
+            return sendSuccess(res, {
+                token,
+                user: {
+                    id: user.id,
+                    name: user.name,
+                    email: user.email,
+                    phoneNumber: user.phone,
+                    lineId: user.lineId,
+                    avatarUrl: user.avatarUrl,
+                },
+            });
+        }
         // GET /api/auth/me
         if (path === '/auth/me' && method === 'GET') {
             const auth = await authenticateRequest(req);
