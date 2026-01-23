@@ -256,12 +256,11 @@ const HomeScreen: React.FC = () => {
                                         { text: '前往登入', onPress: () => navigation.navigate('Auth') }
                                     ]);
                                 } else {
-                                } else {
                                     navigation.navigate('Profile');
                                 }
                             }}
-                        rightContent={<Text style={styles.arrowIcon}>›</Text>}
-                        style={styles.card}
+                            rightContent={<Text style={styles.arrowIcon}>›</Text>}
+                            style={styles.card}
                         />
 
                         {/* 最近訊息卡片 */}
