@@ -30,7 +30,8 @@ async function checkFrontend() {
             { term: '訪客模式', desc: 'Guest Mode Alert' },
             { term: 'MessageTemplates', desc: 'Navigation Fix' },
             { term: 'lineId', desc: 'LineID support' },
-            { term: 'AliveApp/dist', desc: 'Build Path Reference (optional)' }
+            { term: '訪客快速簽到', desc: 'Guest Login UI' },
+            { term: '啟用訪客模式', desc: 'Enable Guest Button' },
         ];
 
         console.log('\n🧪 Testing Content:');
