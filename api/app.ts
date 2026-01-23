@@ -142,6 +142,63 @@ app.post('/api/auth/login', async (req, res) => {
     }
 });
 
+app.post('/api/auth/guest-login', async (req, res) => {
+    try {
+        const { phoneNumber, name } = req.body;
+
+        if (!phoneNumber) {
+            return res.status(400).json({ error: { code: 'INVALID_INPUT', message: '手機號碼為必填' } });
+        }
+
+        // 嘗試尋找現有用戶 (By Phone)
+        const existingUsers = await db.select().from(users).where(eq(users.phoneNumber, phoneNumber)).limit(1);
+        let user = existingUsers[0];
+
+        if (!user) {
+            // 創建新 Guest 用戶
+            // 使用特殊格式 Email 避免衝突: guest_{phone}@alive.app
+            const guestEmail = `guest_${phoneNumber}@alive.app`;
+
+            // 檢查 Email 是否已存在 (防止重複註冊導致的錯誤)
+            const emailCheck = await db.select().from(users).where(eq(users.email, guestEmail)).limit(1);
+
+            if (emailCheck.length > 0) {
+                user = emailCheck[0];
+            } else {
+                const randomPassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8);
+                const hashedPassword = await hashPassword(randomPassword);
+                const userName = name || `Guest ${phoneNumber.slice(-4)}`;
+
+                const [newUser] = await db.insert(users).values({
+                    name: userName,
+                    email: guestEmail,
+                    password: hashedPassword,
+                    phoneNumber: phoneNumber,
+                }).returning();
+                user = newUser;
+
+                // 初始化通知設定
+                await db.insert(notificationSettings).values({
+                    userId: user.id,
+                    emailEnabled: false,
+                    lineEnabled: false,
+                });
+            }
+        }
+
+        const token = generateToken(user.id);
+
+        res.json({
+            token,
+            user: { id: user.id, name: user.name, email: user.email, phoneNumber: user.phoneNumber },
+        });
+
+    } catch (error) {
+        console.error('Guest login error:', error);
+        res.status(500).json({ error: { code: 'INTERNAL_ERROR', message: '伺服器錯誤' } });
+    }
+});
+
 app.get('/api/auth/me', authenticate, async (req: any, res) => {
     try {
         const [user] = await db.select({

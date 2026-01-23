@@ -11,6 +11,7 @@ import {
     SafeAreaView,
     TouchableOpacity,
     Alert,
+    TextInput,
 } from 'react-native';
 import { CheckInButton, StatusCard, GradientBackground } from '../../components';
 import { COLORS, FONTS, SPACING, RADIUS, SHADOWS } from '../../theme';
@@ -28,10 +29,12 @@ import { RootStackParamList } from '../../types';
  */
 const HomeScreen: React.FC = () => {
     const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-    const { user } = useAuth();
+    const { user, guestLogin } = useAuth();
     const [isCheckedIn, setIsCheckedIn] = useState(false);
     const [lastCheckInTime, setLastCheckInTime] = useState<Date | null>(null);
     const [isLoading, setIsLoading] = useState(false);
+    const [guestPhone, setGuestPhone] = useState('');
+    const [guestName, setGuestName] = useState('');
     const [debugToken, setDebugToken] = useState<string | null>(null);
 
     React.useEffect(() => {
@@ -48,14 +51,10 @@ const HomeScreen: React.FC = () => {
         // 1. 訪客檢查 (未登入)
         if (!user) {
             Alert.alert(
-                '您尚未登入',
-                '目前系統顯示您為「訪客狀態」，無法執行簽到或儲存資料。\n\n如果您認為已經登入，請嘗試重新登入以刷新狀態。',
+                '請先啟用訪客模式',
+                '請在上方輸入手機號碼以啟用簽到功能。',
                 [
-                    { text: '取消', style: 'cancel' },
-                    {
-                        text: '前往登入/註冊',
-                        onPress: () => navigation.navigate('Auth')
-                    }
+                    { text: '好', style: 'default' }
                 ]
             );
             return false;
@@ -175,6 +174,33 @@ const HomeScreen: React.FC = () => {
         return now.toLocaleDateString('zh-TW', options);
     };
 
+    const handleGuestLogin = async () => {
+        if (!guestPhone) {
+            Alert.alert('提示', '請輸入手機號碼');
+            return;
+        }
+        if (guestPhone.length < 8) {
+            Alert.alert('提示', '請輸入有效的手機號碼');
+            return;
+        }
+
+        setIsLoading(true);
+        try {
+            const result = await guestLogin(guestPhone, guestName);
+            if (result.success) {
+                Alert.alert('歡迎', '訪客模式已啟用，您現在可以進行簽到了！');
+                setGuestPhone('');
+                setGuestName('');
+            } else {
+                Alert.alert('登入失敗', result.error);
+            }
+        } catch (error) {
+            Alert.alert('錯誤', '發生未預期的錯誤');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     return (
         <GradientBackground variant="light">
             <SafeAreaView style={styles.container}>
@@ -244,24 +270,45 @@ const HomeScreen: React.FC = () => {
                             style={styles.card}
                         />
 
-                        {/* 緊急聯絡人卡片 */}
-                        <StatusCard
-                            title="緊急聯絡人"
-                            subtitle={user ? "管理聯絡人" : "需先登入"}
-                            variant="default"
-                            onPress={() => {
-                                if (!user) {
-                                    Alert.alert('請先登入', '設定緊急聯絡人需要登入會員', [
-                                        { text: '取消', style: 'cancel' },
-                                        { text: '前往登入', onPress: () => navigation.navigate('Auth') }
-                                    ]);
-                                } else {
-                                    navigation.navigate('Profile');
-                                }
-                            }}
-                            rightContent={<Text style={styles.arrowIcon}>›</Text>}
-                            style={styles.card}
-                        />
+                        {/* 訪客登入 或 緊急聯絡人卡片 */}
+                        {!user ? (
+                            <View style={styles.guestFormCard}>
+                                <Text style={styles.guestFormTitle}>訪客快速簽到</Text>
+                                <Text style={styles.guestFormSubtitle}>輸入手機號碼即可啟用簽到功能</Text>
+                                <TextInput
+                                    style={styles.guestInput}
+                                    placeholder="您的手機號碼"
+                                    placeholderTextColor={COLORS.textLight}
+                                    value={guestPhone}
+                                    onChangeText={setGuestPhone}
+                                    keyboardType="phone-pad"
+                                />
+                                <TextInput
+                                    style={styles.guestInput}
+                                    placeholder="您的暱稱 (選填)"
+                                    placeholderTextColor={COLORS.textLight}
+                                    value={guestName}
+                                    onChangeText={setGuestName}
+                                />
+                                <TouchableOpacity
+                                    style={styles.guestButton}
+                                    onPress={handleGuestLogin}
+                                    disabled={isLoading}
+                                >
+                                    <Text style={styles.guestButtonText}>啟用訪客模式</Text>
+                                </TouchableOpacity>
+                            </View>
+                        ) : (
+                            <StatusCard
+                                title="緊急聯絡人"
+                                subtitle="管理聯絡人"
+                                icon="alert-circle"
+                                variant="danger"
+                                onPress={() => navigation.navigate('Profile')}
+                                rightContent={<Text style={styles.arrowIcon}>›</Text>}
+                                style={styles.card}
+                            />
+                        )}
 
                         {/* 最近訊息卡片 */}
                         <StatusCard
@@ -431,6 +478,46 @@ const styles = StyleSheet.create({
         color: COLORS.textLight,
         marginTop: SPACING.xs,
         fontWeight: 'bold',
+    },
+    guestFormCard: {
+        backgroundColor: COLORS.white,
+        borderRadius: RADIUS.lg,
+        padding: SPACING.lg,
+        marginBottom: SPACING.md,
+        ...SHADOWS.md,
+    },
+    guestFormTitle: {
+        fontSize: FONTS.size.lg,
+        fontWeight: FONTS.bold as any,
+        color: COLORS.textPrimary,
+        marginBottom: SPACING.xs,
+    },
+    guestFormSubtitle: {
+        fontSize: FONTS.size.sm,
+        color: COLORS.textSecondary,
+        marginBottom: SPACING.md,
+    },
+    guestInput: {
+        backgroundColor: COLORS.background,
+        borderRadius: RADIUS.md,
+        padding: SPACING.md,
+        marginBottom: SPACING.sm,
+        fontSize: FONTS.size.md,
+        borderWidth: 1,
+        borderColor: COLORS.gray300,
+        color: COLORS.textPrimary,
+    },
+    guestButton: {
+        backgroundColor: COLORS.primary,
+        borderRadius: RADIUS.md,
+        padding: SPACING.md,
+        alignItems: 'center',
+        marginTop: SPACING.sm,
+    },
+    guestButtonText: {
+        color: COLORS.white,
+        fontWeight: FONTS.bold as any,
+        fontSize: FONTS.size.md,
     },
 });
 

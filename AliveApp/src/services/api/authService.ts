@@ -88,6 +88,23 @@ class AuthService {
     }
 
     /**
+     * 訪客登入 (手機號碼綁定)
+     */
+    async guestLogin(params: { phoneNumber: string; name?: string }): Promise<ApiResponse<AuthResponse>> {
+        const response = await apiRequest<AuthResponse>('/auth/guest-login', {
+            method: 'POST',
+            body: JSON.stringify(params),
+        });
+
+        // 登入成功後自動儲存 token
+        if (response.data) {
+            await this.saveToken(response.data.token);
+        }
+
+        return response;
+    }
+
+    /**
      * 取得當前使用者資訊
      */
     async getMe(): Promise<ApiResponse<User>> {

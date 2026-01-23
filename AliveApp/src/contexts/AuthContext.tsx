@@ -11,6 +11,7 @@ interface AuthContextType {
     isAuthenticated: boolean;
     login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
     register: (email: string, password: string, name: string, phoneNumber?: string) => Promise<{ success: boolean; error?: string }>;
+    guestLogin: (phoneNumber: string, name?: string) => Promise<{ success: boolean; error?: string }>;
     logout: () => Promise<void>;
     refreshUser: () => Promise<void>;
 }
@@ -70,6 +71,20 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
     };
 
+    const guestLogin = async (phoneNumber: string, name?: string) => {
+        try {
+            const response = await authService.guestLogin({ phoneNumber, name });
+            if (response.data) {
+                setUser(response.data.user);
+                return { success: true };
+            } else {
+                return { success: false, error: response.error?.message || '訪客登入失敗' };
+            }
+        } catch (error: any) {
+            return { success: false, error: error.message || '訪客登入失敗' };
+        }
+    };
+
     const logout = async () => {
         await authService.logout();
         setUser(null);
@@ -94,6 +109,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 isAuthenticated: user !== null,
                 login,
                 register,
+                guestLogin,
                 logout,
                 refreshUser,
             }}
