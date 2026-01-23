@@ -6,7 +6,7 @@
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import { db } from './lib/db';
-import { users, checkIns, emergencyContacts, notificationSettings } from './schema/schema';
+import { users, checkIns, emergencyContacts, notificationSettings, messageTemplates } from './schema/schema';
 import { eq, desc, and } from 'drizzle-orm';
 import { hashPassword, comparePassword, generateToken, verifyToken } from './lib/auth';
 import { sendVerificationEmail, generateVerificationCode } from './lib/mailer';
@@ -509,6 +509,42 @@ app.post('/api/notifications/confirm-email', authenticate, async (req: any, res)
         }).where(eq(notificationSettings.userId, req.userId));
 
         res.json({ message: 'Email 驗證成功' });
+    } catch (error) {
+        res.status(500).json({ error: { code: 'INTERNAL_ERROR', message: '伺服器錯誤' } });
+    }
+});
+
+// ==================== 訊息模板 API ====================
+
+app.get('/api/message-templates', authenticate, async (req: any, res) => {
+    try {
+        const templates = await db.select().from(messageTemplates)
+            .where(eq(messageTemplates.userId, req.userId))
+            .orderBy(desc(messageTemplates.createdAt));
+
+        res.json({ templates });
+    } catch (error) {
+        res.status(500).json({ error: { code: 'INTERNAL_ERROR', message: '伺服器錯誤' } });
+    }
+});
+
+app.post('/api/message-templates', authenticate, async (req: any, res) => {
+    try {
+        const { type, title, content } = req.body;
+
+        if (!content) {
+            return res.status(400).json({ error: { code: 'INVALID_INPUT', message: '內容為必填' } });
+        }
+
+        const [template] = await db.insert(messageTemplates).values({
+            userId: req.userId,
+            type: type || 'custom',
+            title: title || '自訂模板',
+            content,
+            isDefault: false,
+        }).returning();
+
+        res.status(201).json({ template });
     } catch (error) {
         res.status(500).json({ error: { code: 'INTERNAL_ERROR', message: '伺服器錯誤' } });
     }

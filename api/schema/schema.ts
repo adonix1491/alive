@@ -59,3 +59,17 @@ export const notificationSettings = pgTable('notification_settings', {
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
+
+/**
+ * 訊息模板表
+ */
+export const messageTemplates = pgTable('message_templates', {
+    id: serial('id').primaryKey(),
+    userId: integer('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+    type: text('type').notNull(), // 'custom' | 'default'
+    title: text('title'),
+    content: text('content').notNull(),
+    isDefault: boolean('is_default').default(false).notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
