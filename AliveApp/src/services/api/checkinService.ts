@@ -54,6 +54,11 @@ class CheckInService {
         });
     }
 
+    // Helper for debug
+    async getToken() {
+        return authService.getToken();
+    }
+
     /**
      * 取得簽到歷史
      */

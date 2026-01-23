@@ -32,6 +32,11 @@ const HomeScreen: React.FC = () => {
     const [isCheckedIn, setIsCheckedIn] = useState(false);
     const [lastCheckInTime, setLastCheckInTime] = useState<Date | null>(null);
     const [isLoading, setIsLoading] = useState(false);
+    const [debugToken, setDebugToken] = useState<string | null>(null);
+
+    React.useEffect(() => {
+        checkinService.getToken().then(t => setDebugToken(t));
+    }, [user]);
 
     /**
      * 檢查個人資料完整性
@@ -176,7 +181,10 @@ const HomeScreen: React.FC = () => {
                 {/* 頂部標題區 */}
                 <View style={styles.header}>
                     <Text style={styles.headerTitle}>今日狀態</Text>
-                    <TouchableOpacity style={styles.settingsButton}>
+                    <TouchableOpacity
+                        style={styles.settingsButton}
+                        onPress={() => navigation.navigate('Profile')}
+                    >
                         <Text style={styles.settingsIcon}>⚙️</Text>
                     </TouchableOpacity>
                 </View>
@@ -248,12 +256,12 @@ const HomeScreen: React.FC = () => {
                                         { text: '前往登入', onPress: () => navigation.navigate('Auth') }
                                     ]);
                                 } else {
-                                    // TODO: 導航至緊急聯絡人頁面
-                                    Alert.alert('提示', '前往緊急聯絡人設置');
+                                } else {
+                                    navigation.navigate('Profile');
                                 }
                             }}
-                            rightContent={<Text style={styles.arrowIcon}>›</Text>}
-                            style={styles.card}
+                        rightContent={<Text style={styles.arrowIcon}>›</Text>}
+                        style={styles.card}
                         />
 
                         {/* 最近訊息卡片 */}
@@ -293,7 +301,7 @@ const HomeScreen: React.FC = () => {
                             Email: {user?.email ? 'YES' : 'NO'} | Phone: {user?.phoneNumber ? 'YES' : 'NO'} | Line: {user?.lineId ? 'YES' : 'NO'}
                         </Text>
                         <Text style={{ fontSize: 10, fontFamily: 'monospace' }}>
-                            CheckIn: {isCheckedIn ? 'TRUE' : 'FALSE'}
+                            CheckIn: {isCheckedIn ? 'TRUE' : 'FALSE'} | Token: {debugToken ? 'YES' : 'NO'}
                         </Text>
                     </View>
                 </View>
