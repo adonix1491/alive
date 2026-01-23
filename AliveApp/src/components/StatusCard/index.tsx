@@ -111,7 +111,11 @@ const StatusCard: React.FC<StatusCardProps> = ({
         >
             <View style={styles.content}>
                 {/* 左側圖標 */}
-                {icon && <View style={styles.iconContainer}>{icon}</View>}
+                {icon && (
+                    <View style={styles.iconContainer}>
+                        {typeof icon === 'string' ? <Text style={{ fontSize: 24 }}>{icon}</Text> : icon}
+                    </View>
+                )}
 
                 {/* 中間文字內容 */}
                 <View style={styles.textContainer}>

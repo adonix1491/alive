@@ -1,13 +1,34 @@
 const fetch = require('node-fetch');
 
-// The browser requests this exact URL based on index.html: <script src="/bundle.web.js">
-const BUNDLE_URL = 'https://alive-iota.vercel.app/bundle.web.js';
+// The browser requests this exact URL based on index.html
+const BASE_URL = 'https://alive-iota.vercel.app';
 
 async function checkFrontend() {
-    console.log(`🔍 Checking Frontend Asset: ${BUNDLE_URL}`);
+    console.log(`🔍 Checking Frontend at: ${BASE_URL}`);
 
     try {
-        const jsRes = await fetch(BUNDLE_URL);
+        // 1. Fetch index.html first to find the bundle URL
+        const htmlRes = await fetch(BASE_URL);
+        if (!htmlRes.ok) throw new Error(`Failed to fetch index.html: ${htmlRes.status}`);
+
+        const htmlContent = await htmlRes.text();
+
+        // Look for <script ... src="/bundle.web.[hash].js">
+        const scriptMatch = htmlContent.match(/src="([^"]*bundle\.web\.[^"]+\.js)"/);
+
+        if (!scriptMatch) {
+            console.error('❌ Could not find bundle.web.*.js script tag in index.html!');
+            console.log('HTML content preview:', htmlContent.substring(0, 500));
+            return;
+        }
+
+        const bundlePath = scriptMatch[1];
+        const bundleUrl = bundlePath.startsWith('http') ? bundlePath : `${BASE_URL}${bundlePath}`;
+
+        console.log(`\n🎯 Found bundle: ${bundleUrl}`);
+
+        // 2. Fetch the actual JS bundle
+        const jsRes = await fetch(bundleUrl);
 
         if (!jsRes.ok) {
             throw new Error(`Failed to fetch JS bundle: ${jsRes.status} ${jsRes.statusText}`);
@@ -19,10 +40,6 @@ async function checkFrontend() {
         // Heuristic: If size is small (< 5KB), it's likely HTML error page, not the JS bundle.
         if (jsContent.length < 5000) {
             console.log('   ⚠️ WARNING: Bundle size is suspiciously small. Likely returning HTML (SPA Fallback).');
-            if (jsContent.includes('<!doctype html>')) {
-                console.log('   🚨 CONFIRMED: Server returned HTML instead of JS.');
-                console.log('   Main Cause: vercel.json rewrite rules might be catching /bundle.web.js');
-            }
         }
 
         // Check for specific strings we added recently

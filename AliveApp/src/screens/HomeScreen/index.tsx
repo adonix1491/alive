@@ -271,7 +271,7 @@ const HomeScreen: React.FC = () => {
                         />
 
                         {/* 訪客登入 或 緊急聯絡人卡片 */}
-                        {!user ? (
+                        {(!user || !user.id) ? (
                             <View style={styles.guestFormCard}>
                                 <Text style={styles.guestFormTitle}>訪客快速簽到</Text>
                                 <Text style={styles.guestFormSubtitle}>輸入手機號碼即可啟用簽到功能</Text>
@@ -302,7 +302,6 @@ const HomeScreen: React.FC = () => {
                             <StatusCard
                                 title="緊急聯絡人"
                                 subtitle="管理聯絡人"
-                                icon="alert-circle"
                                 variant="danger"
                                 onPress={() => navigation.navigate('Profile')}
                                 rightContent={<Text style={styles.arrowIcon}>›</Text>}
