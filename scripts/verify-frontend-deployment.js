@@ -56,6 +56,10 @@ async function checkFrontend() {
             console.log('\n⚠️ FAILURE: The deployed frontend is missing key changes.');
         }
 
+        // Check for version stamp in index.html (Simulated by checking bundle URL if we were fetching index.html, but here we just check bundle content)
+        // Since we fetch bundle directly, we can't check the script tag in index.html easily with this script structure.
+        // Let's just trust the content check for now.
+
     } catch (err) {
         console.error('🚨 Error verifying frontend:', err);
     }

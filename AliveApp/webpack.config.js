@@ -43,7 +43,7 @@ module.exports = {
     output: {
         path: path.resolve(appDirectory, 'dist'),
         publicPath: '/',
-        filename: 'bundle.web.js',
+        filename: 'bundle.web.[contenthash].js',
     },
     module: {
         rules: [
