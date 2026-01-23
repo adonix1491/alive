@@ -8,7 +8,8 @@
         "install:backend": "cd backend && npm install",
         "build:web": "cd AliveApp && npm run build:web",
         "dev:web": "cd AliveApp && npm run web",
-        "dev:backend": "cd backend && npm run dev"
+        "dev:backend": "cd backend && npm run dev",
+        "build": "npm run build:web"
     },
     "dependencies": {
         "@vercel/node": "^3.0.0",
