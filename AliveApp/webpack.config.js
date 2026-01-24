@@ -25,12 +25,17 @@ const babelLoaderConfiguration = {
         loader: 'babel-loader',
         options: {
             cacheDirectory: true,
+            sourceType: "unambiguous",
             presets: [
                 ['@babel/preset-env', { targets: "defaults" }],
                 ['@babel/preset-react', { runtime: 'automatic' }],
                 '@babel/preset-typescript',
             ],
             plugins: [
+                ['@babel/plugin-transform-runtime', {
+                    helpers: true,
+                    regenerator: true
+                }],
                 'react-native-web',
                 'react-native-reanimated/plugin',
             ],
