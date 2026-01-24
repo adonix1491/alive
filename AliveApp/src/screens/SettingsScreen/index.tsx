@@ -13,7 +13,10 @@ import {
     TextInput,
     Alert,
 } from 'react-native';
+import { GradientBackground } from '../../components';
 import { contactsService } from '../../services/api';
+import { DEFAULT_CHECK_IN_SETTINGS } from '../../constants';
+import { COLORS, FONTS, SPACING, RADIUS, SHADOWS } from '../../theme';
 
 /**
  * 設置中心頁面
