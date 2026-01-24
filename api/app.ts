@@ -30,7 +30,8 @@ app.use(express.json());
 const healthHandler = (req: Request, res: Response) => {
     res.json({
         status: 'ok',
-        message: 'ALIVE Backend is running',
+        message: 'ALIVE Backend is running (Unified Vercel Express)',
+        version: '2.0.1-fixed-routing',
         path: req.path,
         url: req.url,
         originalUrl: req.originalUrl
