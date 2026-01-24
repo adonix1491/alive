@@ -74,6 +74,7 @@
     window.exports = window.exports || {};
     window.module = window.module || { exports: window.exports };
     window.process = window.process || { env: { NODE_ENV: 'production' } };
+    window.global = window; // Some libraries use 'global' instead of 'window'
 
     // Inline Debugger - Runs before bundle
     window.onerror = function (message, source, lineno, colno, error) {
