@@ -12,6 +12,7 @@ const babelLoaderConfiguration = {
         path.resolve(appDirectory, 'node_modules/react-native-vector-icons'),
         path.resolve(appDirectory, 'node_modules/react-native-screens'),
         path.resolve(appDirectory, 'node_modules/react-native-safe-area-context'),
+        path.resolve(appDirectory, 'node_modules/react-native-gesture-handler'),
         path.resolve(appDirectory, 'node_modules/@react-navigation'),
         // Handle hoisted modules in monorepo
         path.resolve(appDirectory, '../node_modules/react-native-screens'),
