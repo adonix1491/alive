@@ -10,7 +10,19 @@ console.log('🚀 Starting Vercel Build Script...');
 
 try {
     // 1. Install and Build AliveApp
-    console.log('📦 Building AliveApp...');
+    console.log('📦 Building AliveApp (Clean Build)...');
+
+    // Force clean install to prevent caching issues
+    console.log('🧹 Cleaning previous artifacts...');
+    try {
+        if (fs.existsSync(path.join(aliveAppDir, 'node_modules'))) {
+            fs.rmSync(path.join(aliveAppDir, 'node_modules'), { recursive: true, force: true });
+        }
+        if (fs.existsSync(path.join(aliveAppDir, 'dist'))) {
+            fs.rmSync(path.join(aliveAppDir, 'dist'), { recursive: true, force: true });
+        }
+    } catch (e) { console.warn('Cleanup warning:', e); }
+
     execSync('npm install', { cwd: aliveAppDir, stdio: 'inherit' });
     execSync('npm run build:web', { cwd: aliveAppDir, stdio: 'inherit' });
 
