@@ -57,6 +57,9 @@ module.exports = {
         publicPath: '/',
         filename: 'bundle.web.[contenthash].js',
     },
+    optimization: {
+        minimize: false,
+    },
     module: {
         rules: [
             babelLoaderConfiguration,
