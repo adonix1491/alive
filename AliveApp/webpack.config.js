@@ -32,10 +32,6 @@ const babelLoaderConfiguration = {
                 '@babel/preset-typescript',
             ],
             plugins: [
-                ['@babel/plugin-transform-runtime', {
-                    helpers: true,
-                    regenerator: true
-                }],
                 'react-native-web',
                 'react-native-reanimated/plugin',
             ],
