@@ -2,8 +2,11 @@
  * ALIVE愛來 APP - Web 版入口 (Safe Loader Mode)
  */
 
+// 0. Polyfill for 'exports is not defined' error
 if (typeof window !== 'undefined') {
-    console.log('--- JS EXECUTION STARTED ---');
+    window.exports = window.exports || {};
+    window.module = window.module || { exports: window.exports };
+    console.log('--- JS EXECUTION STARTED (Polyfilled) ---');
 }
 
 import React from 'react';
