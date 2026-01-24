@@ -42,10 +42,6 @@
         "drizzle-kit": "^0.29.1",
         "typescript": "^5.8.3"
     },
-    "workspaces": [
-        "AliveApp",
-        "AliveExpo"
-    ],
     "engines": {
         "node": ">=20"
     }

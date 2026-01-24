@@ -30,7 +30,6 @@ import { EmergencyContact } from './src/types';
 import { AuthProvider } from './src/contexts/AuthContext';
 import LoginScreen from './src/screens/LoginScreen';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { createStackNavigator } from '@react-navigation/stack';
 import { Platform } from 'react-native';
 import 'react-native-gesture-handler';
 
@@ -608,7 +607,8 @@ const ProfileScreen: React.FC = () => {
 // Web (JS-based) vs. Native (Native-based) Navigator
 
 // Web (JS-based) vs. Native (Native-based) Navigator
-const Stack = Platform.OS === 'web' ? createStackNavigator() : createNativeStackNavigator();
+// Modified to use createNativeStackNavigator for ALL platforms to avoid version conflicts with @react-navigation/stack
+const Stack = createNativeStackNavigator();
 
 const RootNavigator = () => {
   const { isAuthenticated, isLoading } = useAuthContext();
