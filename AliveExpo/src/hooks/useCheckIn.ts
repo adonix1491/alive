@@ -4,13 +4,9 @@
  */
 import { useState, useEffect, useCallback } from 'react';
 import { Alert } from 'react-native';
-import {
-    performCheckIn,
-    getTodayCheckIn,
-    getRecentCheckIns,
-    getStreakDays,
-} from '../services/firebase';
+import checkinService from '../services/api/checkinService';
 import { CheckInRecord } from '../types';
+import useAuth from './useAuth';
 
 interface UseCheckInResult {
     /** 今日是否已簽到 */
@@ -31,20 +27,22 @@ interface UseCheckInResult {
 
 /**
  * 簽到功能 Hook
- * @param userId 用戶 ID
  */
-const useCheckIn = (userId: string | null): UseCheckInResult => {
+const useCheckIn = (): UseCheckInResult => {
     const [isCheckedIn, setIsCheckedIn] = useState(false);
     const [todayCheckIn, setTodayCheckIn] = useState<CheckInRecord | null>(null);
     const [recentCheckIns, setRecentCheckIns] = useState<CheckInRecord[]>([]);
     const [streakDays, setStreakDays] = useState(0);
     const [isLoading, setIsLoading] = useState(true);
 
+    const { user } = useAuth();
+
     /**
      * 載入簽到資料
      */
     const loadCheckInData = useCallback(async () => {
-        if (!userId) {
+        // 如果沒有 user (未登入), 不進行載入
+        if (!user) {
             setIsLoading(false);
             return;
         }
@@ -52,40 +50,49 @@ const useCheckIn = (userId: string | null): UseCheckInResult => {
         setIsLoading(true);
 
         try {
-            // 獲取今日簽到
-            const todayResult = await getTodayCheckIn(userId);
-            if (todayResult.success) {
-                setTodayCheckIn(todayResult.data || null);
-                setIsCheckedIn(!!todayResult.data);
-            }
+            // 獲取歷史記錄
+            const result = await checkinService.getHistory(20, 0);
 
-            // 獲取最近簽到記錄
-            const recentResult = await getRecentCheckIns(userId);
-            if (recentResult.success && recentResult.data) {
-                setRecentCheckIns(recentResult.data);
-            }
+            if (result.data) {
+                const history = result.data.history;
+                setRecentCheckIns(history);
 
-            // 獲取連續簽到天數
-            const streakResult = await getStreakDays(userId);
-            if (streakResult.success && streakResult.data !== undefined) {
-                setStreakDays(streakResult.data);
+                // 檢查今日是否已簽到
+                if (history.length > 0) {
+                    const latest = history[0];
+                    const checkInDate = new Date(latest.checkedAt);
+                    const today = new Date();
+
+                    const isToday = checkInDate.getDate() === today.getDate() &&
+                        checkInDate.getMonth() === today.getMonth() &&
+                        checkInDate.getFullYear() === today.getFullYear();
+
+                    if (isToday) {
+                        setTodayCheckIn(latest);
+                        setIsCheckedIn(true);
+                    } else {
+                        setTodayCheckIn(null);
+                        setIsCheckedIn(false);
+                    }
+                } else {
+                    setTodayCheckIn(null);
+                    setIsCheckedIn(false);
+                }
+
+                // TODO: 實作連續簽到計算 (Mock for now)
+                setStreakDays(history.length > 0 ? 1 : 0);
             }
         } catch (error) {
             console.error('載入簽到資料失敗:', error);
         } finally {
             setIsLoading(false);
         }
-    }, [userId]);
+    }, [user]);
 
     /**
      * 執行簽到
      */
     const checkIn = useCallback(async () => {
-        if (!userId) {
-            Alert.alert('錯誤', '請先登入');
-            return;
-        }
-
         if (isCheckedIn) {
             Alert.alert('提示', '您今天已經簽到了！');
             return;
@@ -94,13 +101,17 @@ const useCheckIn = (userId: string | null): UseCheckInResult => {
         setIsLoading(true);
 
         try {
-            const result = await performCheckIn(userId);
+            // 取得位置 (Mock for now, or use expo-location if configured)
+            const result = await checkinService.createCheckIn({
+                location: { latitude: 0, longitude: 0 }
+            });
 
-            if (result.success && result.data) {
-                setTodayCheckIn(result.data);
+            if (result.data) {
+                const newCheckIn = result.data.checkIn;
+                setTodayCheckIn(newCheckIn);
                 setIsCheckedIn(true);
                 setStreakDays(prev => prev + 1);
-                setRecentCheckIns(prev => [result.data!, ...prev]);
+                setRecentCheckIns(prev => [newCheckIn, ...prev]);
 
                 Alert.alert(
                     '簽到成功！✨',
@@ -116,7 +127,7 @@ const useCheckIn = (userId: string | null): UseCheckInResult => {
         } finally {
             setIsLoading(false);
         }
-    }, [userId, isCheckedIn]);
+    }, [isCheckedIn]);
 
     /**
      * 刷新資料

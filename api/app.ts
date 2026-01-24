@@ -11,19 +11,22 @@ import { eq, desc, and } from 'drizzle-orm';
 import { hashPassword, comparePassword, generateToken, verifyToken } from './lib/auth';
 import { sendVerificationEmail, generateVerificationCode } from './lib/mailer';
 
+// Extend Express Request type to include userId
+declare global {
+    namespace Express {
+        interface Request {
+            userId?: number;
+        }
+    }
+}
+
 const app = express();
 
 // Middleware
 app.use(cors());
 app.use(express.json());
 
-// Debug Middleware
-app.use((req, res, next) => {
-    console.log(`[Request] ${req.method} ${req.url}`);
-    next();
-});
-
-// Health check (Support both paths)
+// Health check
 const healthHandler = (req: Request, res: Response) => {
     res.json({
         status: 'ok',
@@ -37,34 +40,19 @@ const healthHandler = (req: Request, res: Response) => {
 app.get('/health', healthHandler);
 app.get('/api/health', healthHandler);
 
-// Debug Route for 404 diagnosis
-app.all('*', (req, res, next) => {
-    // 如果請求的是其他已定義的 API，讓它通過
-    if (req.path.startsWith('/api/auth') || req.path.startsWith('/api/user')) {
-        return next();
-    }
-
-    // 否則回傳調試資訊而不是預設 404 HTML
-    res.status(404).json({
-        error: 'Not Found (Express Catch-All)',
-        receivedUrl: req.url,
-        receivedPath: req.path,
-        originalUrl: req.originalUrl,
-        method: req.method
-    });
-});
-
 // 認證中介層
-async function authenticate(req: any, res: Response, next: NextFunction) {
+async function authenticate(req: Request, res: Response, next: NextFunction) {
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        return res.status(401).json({ error: { code: 'UNAUTHORIZED', message: '請先登入' } });
+        res.status(401).json({ error: { code: 'UNAUTHORIZED', message: '請先登入' } });
+        return;
     }
 
     const token = authHeader.substring(7);
     const decoded = verifyToken(token);
     if (!decoded || typeof decoded.userId !== 'number') {
-        return res.status(401).json({ error: { code: 'UNAUTHORIZED', message: '請先登入' } });
+        res.status(401).json({ error: { code: 'UNAUTHORIZED', message: '請先登入' } });
+        return;
     }
 
     req.userId = decoded.userId;
@@ -73,31 +61,39 @@ async function authenticate(req: any, res: Response, next: NextFunction) {
 
 // ==================== 認證 API ====================
 
-app.post('/api/auth/register', async (req, res) => {
+app.post('/api/auth/register', async (req: Request, res: Response) => {
     try {
         const { name, email, password, phoneNumber } = req.body;
 
         if (!name || !email || !password) {
-            return res.status(400).json({ error: { code: 'INVALID_INPUT', message: '姓名、Email 和密碼為必填' } });
+            res.status(400).json({ error: { code: 'INVALID_INPUT', message: '姓名、Email 和密碼為必填' } });
+            return;
         }
 
         if (password.length < 6) {
-            return res.status(400).json({ error: { code: 'INVALID_PASSWORD', message: '密碼長度至少 6 個字元' } });
+            res.status(400).json({ error: { code: 'INVALID_PASSWORD', message: '密碼長度至少 6 個字元' } });
+            return;
         }
 
         const existingUser = await db.select().from(users).where(eq(users.email, email)).limit(1);
         if (existingUser.length > 0) {
-            return res.status(409).json({ error: { code: 'EMAIL_EXISTS', message: '此 Email 已被註冊' } });
+            res.status(409).json({ error: { code: 'EMAIL_EXISTS', message: '此 Email 已被註冊' } });
+            return;
         }
 
         const hashedPassword = await hashPassword(password);
 
         const [newUser] = await db.insert(users).values({
-            name, email, password: hashedPassword, phoneNumber: phoneNumber || null,
+            name,
+            email,
+            password: hashedPassword,
+            phoneNumber: phoneNumber ?? null,
         }).returning();
 
         await db.insert(notificationSettings).values({
-            userId: newUser.id, emailEnabled: false, lineEnabled: false,
+            userId: newUser.id,
+            emailEnabled: false,
+            lineEnabled: false,
         });
 
         const token = generateToken(newUser.id);
@@ -112,22 +108,25 @@ app.post('/api/auth/register', async (req, res) => {
     }
 });
 
-app.post('/api/auth/login', async (req, res) => {
+app.post('/api/auth/login', async (req: Request, res: Response) => {
     try {
         const { email, password } = req.body;
 
         if (!email || !password) {
-            return res.status(400).json({ error: { code: 'INVALID_INPUT', message: 'Email 和密碼為必填' } });
+            res.status(400).json({ error: { code: 'INVALID_INPUT', message: 'Email 和密碼為必填' } });
+            return;
         }
 
         const [user] = await db.select().from(users).where(eq(users.email, email)).limit(1);
         if (!user) {
-            return res.status(401).json({ error: { code: 'INVALID_CREDENTIALS', message: 'Email 或密碼錯誤' } });
+            res.status(401).json({ error: { code: 'INVALID_CREDENTIALS', message: 'Email 或密碼錯誤' } });
+            return;
         }
 
         const isPasswordValid = await comparePassword(password, user.password);
         if (!isPasswordValid) {
-            return res.status(401).json({ error: { code: 'INVALID_CREDENTIALS', message: 'Email 或密碼錯誤' } });
+            res.status(401).json({ error: { code: 'INVALID_CREDENTIALS', message: 'Email 或密碼錯誤' } });
+            return;
         }
 
         const token = generateToken(user.id);
@@ -142,12 +141,13 @@ app.post('/api/auth/login', async (req, res) => {
     }
 });
 
-app.post('/api/auth/guest-login', async (req, res) => {
+app.post('/api/auth/guest-login', async (req: Request, res: Response) => {
     try {
         const { phoneNumber, name } = req.body;
 
         if (!phoneNumber) {
-            return res.status(400).json({ error: { code: 'INVALID_INPUT', message: '手機號碼為必填' } });
+            res.status(400).json({ error: { code: 'INVALID_INPUT', message: '手機號碼為必填' } });
+            return;
         }
 
         // 嘗試尋找現有用戶 (By Phone)
@@ -155,11 +155,7 @@ app.post('/api/auth/guest-login', async (req, res) => {
         let user = existingUsers[0];
 
         if (!user) {
-            // 創建新 Guest 用戶
-            // 使用特殊格式 Email 避免衝突: guest_{phone}@alive.app
             const guestEmail = `guest_${phoneNumber}@alive.app`;
-
-            // 檢查 Email 是否已存在 (防止重複註冊導致的錯誤)
             const emailCheck = await db.select().from(users).where(eq(users.email, guestEmail)).limit(1);
 
             if (emailCheck.length > 0) {
@@ -177,7 +173,6 @@ app.post('/api/auth/guest-login', async (req, res) => {
                 }).returning();
                 user = newUser;
 
-                // 初始化通知設定
                 await db.insert(notificationSettings).values({
                     userId: user.id,
                     emailEnabled: false,
@@ -199,14 +194,15 @@ app.post('/api/auth/guest-login', async (req, res) => {
     }
 });
 
-app.get('/api/auth/me', authenticate, async (req: any, res) => {
+app.get('/api/auth/me', authenticate, async (req: Request, res: Response) => {
     try {
         const [user] = await db.select({
             id: users.id, name: users.name, email: users.email, phoneNumber: users.phoneNumber,
-        }).from(users).where(eq(users.id, req.userId)).limit(1);
+        }).from(users).where(eq(users.id, req.userId!)).limit(1);
 
         if (!user) {
-            return res.status(404).json({ error: { code: 'USER_NOT_FOUND', message: '用戶不存在' } });
+            res.status(404).json({ error: { code: 'USER_NOT_FOUND', message: '用戶不存在' } });
+            return;
         }
 
         res.json({ user });
@@ -218,14 +214,15 @@ app.get('/api/auth/me', authenticate, async (req: any, res) => {
 
 // ==================== 用戶 API ====================
 
-app.get('/api/user/profile', authenticate, async (req: any, res) => {
+app.get('/api/user/profile', authenticate, async (req: Request, res: Response) => {
     try {
         const [user] = await db.select({
             id: users.id, name: users.name, email: users.email, phoneNumber: users.phoneNumber,
-        }).from(users).where(eq(users.id, req.userId)).limit(1);
+        }).from(users).where(eq(users.id, req.userId!)).limit(1);
 
         if (!user) {
-            return res.status(404).json({ error: { code: 'USER_NOT_FOUND', message: '用戶不存在' } });
+            res.status(404).json({ error: { code: 'USER_NOT_FOUND', message: '用戶不存在' } });
+            return;
         }
 
         res.json({ user });
@@ -234,17 +231,19 @@ app.get('/api/user/profile', authenticate, async (req: any, res) => {
     }
 });
 
-app.put('/api/user/profile', authenticate, async (req: any, res) => {
+app.put('/api/user/profile', authenticate, async (req: Request, res: Response) => {
     try {
         const { name, phoneNumber } = req.body;
 
         if (!name) {
-            return res.status(400).json({ error: { code: 'INVALID_INPUT', message: '姓名為必填' } });
+            res.status(400).json({ error: { code: 'INVALID_INPUT', message: '姓名為必填' } });
+            return;
         }
 
         const [updatedUser] = await db.update(users).set({
-            name, phoneNumber: phoneNumber || null,
-        }).where(eq(users.id, req.userId)).returning({
+            name,
+            phoneNumber: phoneNumber ?? null,
+        }).where(eq(users.id, req.userId!)).returning({
             id: users.id, name: users.name, email: users.email, phoneNumber: users.phoneNumber,
         });
 
@@ -254,30 +253,34 @@ app.put('/api/user/profile', authenticate, async (req: any, res) => {
     }
 });
 
-app.post('/api/user/password', authenticate, async (req: any, res) => {
+app.post('/api/user/password', authenticate, async (req: Request, res: Response) => {
     try {
         const { oldPassword, newPassword } = req.body;
 
         if (!oldPassword || !newPassword) {
-            return res.status(400).json({ error: { code: 'INVALID_INPUT', message: '舊密碼和新密碼為必填' } });
+            res.status(400).json({ error: { code: 'INVALID_INPUT', message: '舊密碼和新密碼為必填' } });
+            return;
         }
 
         if (newPassword.length < 6) {
-            return res.status(400).json({ error: { code: 'INVALID_PASSWORD', message: '新密碼長度至少 6 個字元' } });
+            res.status(400).json({ error: { code: 'INVALID_PASSWORD', message: '新密碼長度至少 6 個字元' } });
+            return;
         }
 
-        const [user] = await db.select().from(users).where(eq(users.id, req.userId)).limit(1);
+        const [user] = await db.select().from(users).where(eq(users.id, req.userId!)).limit(1);
         if (!user) {
-            return res.status(404).json({ error: { code: 'USER_NOT_FOUND', message: '用戶不存在' } });
+            res.status(404).json({ error: { code: 'USER_NOT_FOUND', message: '用戶不存在' } });
+            return;
         }
 
         const isOldPasswordValid = await comparePassword(oldPassword, user.password);
         if (!isOldPasswordValid) {
-            return res.status(401).json({ error: { code: 'INVALID_OLD_PASSWORD', message: '舊密碼錯誤' } });
+            res.status(401).json({ error: { code: 'INVALID_OLD_PASSWORD', message: '舊密碼錯誤' } });
+            return;
         }
 
         const hashedNewPassword = await hashPassword(newPassword);
-        await db.update(users).set({ password: hashedNewPassword }).where(eq(users.id, req.userId));
+        await db.update(users).set({ password: hashedNewPassword }).where(eq(users.id, req.userId!));
 
         res.json({ message: '密碼更新成功' });
     } catch (error) {
@@ -287,12 +290,15 @@ app.post('/api/user/password', authenticate, async (req: any, res) => {
 
 // ==================== 簽到 API ====================
 
-app.post('/api/checkin', authenticate, async (req: any, res) => {
+app.post('/api/checkin', authenticate, async (req: Request, res: Response) => {
     try {
         const { latitude, longitude, note } = req.body;
 
         const [checkIn] = await db.insert(checkIns).values({
-            userId: req.userId, latitude: latitude || null, longitude: longitude || null, note: note || null,
+            userId: req.userId!,
+            latitude: latitude ?? null,
+            longitude: longitude ?? null,
+            note: note ?? null,
         }).returning();
 
         res.status(201).json({ checkIn });
@@ -301,14 +307,14 @@ app.post('/api/checkin', authenticate, async (req: any, res) => {
     }
 });
 
-app.get('/api/checkin/history', authenticate, async (req: any, res) => {
+app.get('/api/checkin/history', authenticate, async (req: Request, res: Response) => {
     try {
         const { limit = '20', offset = '0' } = req.query;
         const limitNum = parseInt(limit as string);
         const offsetNum = parseInt(offset as string);
 
         const history = await db.select().from(checkIns)
-            .where(eq(checkIns.userId, req.userId))
+            .where(eq(checkIns.userId, req.userId!))
             .orderBy(desc(checkIns.checkedAt))
             .limit(limitNum).offset(offsetNum);
 
@@ -320,10 +326,10 @@ app.get('/api/checkin/history', authenticate, async (req: any, res) => {
 
 // ==================== 聯絡人 API ====================
 
-app.get('/api/contacts', authenticate, async (req: any, res) => {
+app.get('/api/contacts', authenticate, async (req: Request, res: Response) => {
     try {
         const contacts = await db.select().from(emergencyContacts)
-            .where(eq(emergencyContacts.userId, req.userId));
+            .where(eq(emergencyContacts.userId, req.userId!));
 
         res.json({ contacts });
     } catch (error) {
@@ -331,23 +337,29 @@ app.get('/api/contacts', authenticate, async (req: any, res) => {
     }
 });
 
-app.post('/api/contacts', authenticate, async (req: any, res) => {
+app.post('/api/contacts', authenticate, async (req: Request, res: Response) => {
     try {
         const { name, relationship, phoneNumber, email } = req.body;
 
         if (!name || !phoneNumber) {
-            return res.status(400).json({ error: { code: 'INVALID_INPUT', message: '姓名和電話為必填' } });
+            res.status(400).json({ error: { code: 'INVALID_INPUT', message: '姓名和電話為必填' } });
+            return;
         }
 
         const existingContacts = await db.select().from(emergencyContacts)
-            .where(eq(emergencyContacts.userId, req.userId));
+            .where(eq(emergencyContacts.userId, req.userId!));
 
         if (existingContacts.length >= 5) {
-            return res.status(400).json({ error: { code: 'MAX_CONTACTS_REACHED', message: '最多只能新增 5 位緊急聯絡人' } });
+            res.status(400).json({ error: { code: 'MAX_CONTACTS_REACHED', message: '最多只能新增 5 位緊急聯絡人' } });
+            return;
         }
 
         const [contact] = await db.insert(emergencyContacts).values({
-            userId: req.userId, name, relationship: relationship || null, phoneNumber, email: email || null,
+            userId: req.userId!,
+            name,
+            relationship: relationship ?? null,
+            phoneNumber,
+            email: email ?? null,
         }).returning();
 
         res.status(201).json({ contact });
@@ -356,25 +368,30 @@ app.post('/api/contacts', authenticate, async (req: any, res) => {
     }
 });
 
-app.put('/api/contacts/:id', authenticate, async (req: any, res) => {
+app.put('/api/contacts/:id', authenticate, async (req: Request, res: Response) => {
     try {
         const contactId = parseInt(req.params.id);
         const { name, relationship, phoneNumber, email } = req.body;
 
         if (!name || !phoneNumber) {
-            return res.status(400).json({ error: { code: 'INVALID_INPUT', message: '姓名和電話為必填' } });
+            res.status(400).json({ error: { code: 'INVALID_INPUT', message: '姓名和電話為必填' } });
+            return;
         }
 
         const [contact] = await db.select().from(emergencyContacts).where(and(
-            eq(emergencyContacts.id, contactId), eq(emergencyContacts.userId, req.userId)
+            eq(emergencyContacts.id, contactId), eq(emergencyContacts.userId, req.userId!)
         )).limit(1);
 
         if (!contact) {
-            return res.status(404).json({ error: { code: 'CONTACT_NOT_FOUND', message: '聯絡人不存在' } });
+            res.status(404).json({ error: { code: 'CONTACT_NOT_FOUND', message: '聯絡人不存在' } });
+            return;
         }
 
         const [updatedContact] = await db.update(emergencyContacts).set({
-            name, relationship: relationship || null, phoneNumber, email: email || null,
+            name,
+            relationship: relationship ?? null,
+            phoneNumber,
+            email: email ?? null,
         }).where(eq(emergencyContacts.id, contactId)).returning();
 
         res.json({ contact: updatedContact });
@@ -383,16 +400,17 @@ app.put('/api/contacts/:id', authenticate, async (req: any, res) => {
     }
 });
 
-app.delete('/api/contacts/:id', authenticate, async (req: any, res) => {
+app.delete('/api/contacts/:id', authenticate, async (req: Request, res: Response) => {
     try {
         const contactId = parseInt(req.params.id);
 
         const [contact] = await db.select().from(emergencyContacts).where(and(
-            eq(emergencyContacts.id, contactId), eq(emergencyContacts.userId, req.userId)
+            eq(emergencyContacts.id, contactId), eq(emergencyContacts.userId, req.userId!)
         )).limit(1);
 
         if (!contact) {
-            return res.status(404).json({ error: { code: 'CONTACT_NOT_FOUND', message: '聯絡人不存在' } });
+            res.status(404).json({ error: { code: 'CONTACT_NOT_FOUND', message: '聯絡人不存在' } });
+            return;
         }
 
         await db.delete(emergencyContacts).where(eq(emergencyContacts.id, contactId));
@@ -405,13 +423,14 @@ app.delete('/api/contacts/:id', authenticate, async (req: any, res) => {
 
 // ==================== 通知 API ====================
 
-app.get('/api/notifications/settings', authenticate, async (req: any, res) => {
+app.get('/api/notifications/settings', authenticate, async (req: Request, res: Response) => {
     try {
         const [settings] = await db.select().from(notificationSettings)
-            .where(eq(notificationSettings.userId, req.userId)).limit(1);
+            .where(eq(notificationSettings.userId, req.userId!)).limit(1);
 
         if (!settings) {
-            return res.status(404).json({ error: { code: 'SETTINGS_NOT_FOUND', message: '通知設定不存在' } });
+            res.status(404).json({ error: { code: 'SETTINGS_NOT_FOUND', message: '通知設定不存在' } });
+            return;
         }
 
         res.json({ settings });
@@ -420,15 +439,15 @@ app.get('/api/notifications/settings', authenticate, async (req: any, res) => {
     }
 });
 
-app.put('/api/notifications/settings', authenticate, async (req: any, res) => {
+app.put('/api/notifications/settings', authenticate, async (req: Request, res: Response) => {
     try {
         const { emailEnabled, lineEnabled, notificationEmail } = req.body;
 
         const [updatedSettings] = await db.update(notificationSettings).set({
             emailEnabled: emailEnabled ?? undefined,
             lineEnabled: lineEnabled ?? undefined,
-            notificationEmail: notificationEmail || null,
-        }).where(eq(notificationSettings.userId, req.userId)).returning();
+            notificationEmail: notificationEmail ?? null,
+        }).where(eq(notificationSettings.userId, req.userId!)).returning();
 
         res.json({ settings: updatedSettings });
     } catch (error) {
@@ -436,25 +455,27 @@ app.put('/api/notifications/settings', authenticate, async (req: any, res) => {
     }
 });
 
-app.post('/api/notifications/verify-email', authenticate, async (req: any, res) => {
+app.post('/api/notifications/verify-email', authenticate, async (req: Request, res: Response) => {
     try {
         const { email } = req.body;
 
         if (!email) {
-            return res.status(400).json({ error: { code: 'INVALID_INPUT', message: 'Email 為必填' } });
+            res.status(400).json({ error: { code: 'INVALID_INPUT', message: 'Email 為必填' } });
+            return;
         }
 
         const [settings] = await db.select().from(notificationSettings)
-            .where(eq(notificationSettings.userId, req.userId)).limit(1);
+            .where(eq(notificationSettings.userId, req.userId!)).limit(1);
 
         if (settings?.emailVerificationSentAt) {
             const cooldown = 60 * 1000;
             const timeSinceLastSent = Date.now() - settings.emailVerificationSentAt.getTime();
             if (timeSinceLastSent < cooldown) {
                 const remainingSeconds = Math.ceil((cooldown - timeSinceLastSent) / 1000);
-                return res.status(429).json({
+                res.status(429).json({
                     error: { code: 'RATE_LIMIT', message: `請等待 ${remainingSeconds} 秒後再試` }
                 });
+                return;
             }
         }
 
@@ -466,7 +487,7 @@ app.post('/api/notifications/verify-email', authenticate, async (req: any, res) 
             emailVerificationCode: code,
             emailVerificationExpiresAt: expiresAt,
             emailVerificationSentAt: new Date(),
-        }).where(eq(notificationSettings.userId, req.userId));
+        }).where(eq(notificationSettings.userId, req.userId!));
 
         try {
             await sendVerificationEmail(email, code);
@@ -479,34 +500,38 @@ app.post('/api/notifications/verify-email', authenticate, async (req: any, res) 
     }
 });
 
-app.post('/api/notifications/confirm-email', authenticate, async (req: any, res) => {
+app.post('/api/notifications/confirm-email', authenticate, async (req: Request, res: Response) => {
     try {
         const { code } = req.body;
 
         if (!code) {
-            return res.status(400).json({ error: { code: 'INVALID_INPUT', message: '驗證碼為必填' } });
+            res.status(400).json({ error: { code: 'INVALID_INPUT', message: '驗證碼為必填' } });
+            return;
         }
 
         const [settings] = await db.select().from(notificationSettings)
-            .where(eq(notificationSettings.userId, req.userId)).limit(1);
+            .where(eq(notificationSettings.userId, req.userId!)).limit(1);
 
         if (!settings) {
-            return res.status(404).json({ error: { code: 'SETTINGS_NOT_FOUND', message: '通知設定不存在' } });
+            res.status(404).json({ error: { code: 'SETTINGS_NOT_FOUND', message: '通知設定不存在' } });
+            return;
         }
 
         if (settings.emailVerificationCode !== code) {
-            return res.status(400).json({ error: { code: 'INVALID_CODE', message: '驗證碼錯誤' } });
+            res.status(400).json({ error: { code: 'INVALID_CODE', message: '驗證碼錯誤' } });
+            return;
         }
 
         if (!settings.emailVerificationExpiresAt || settings.emailVerificationExpiresAt < new Date()) {
-            return res.status(400).json({ error: { code: 'CODE_EXPIRED', message: '驗證碼已過期' } });
+            res.status(400).json({ error: { code: 'CODE_EXPIRED', message: '驗證碼已過期' } });
+            return;
         }
 
         await db.update(notificationSettings).set({
             emailEnabled: true,
             emailVerificationCode: null,
             emailVerificationExpiresAt: null,
-        }).where(eq(notificationSettings.userId, req.userId));
+        }).where(eq(notificationSettings.userId, req.userId!));
 
         res.json({ message: 'Email 驗證成功' });
     } catch (error) {
@@ -516,10 +541,10 @@ app.post('/api/notifications/confirm-email', authenticate, async (req: any, res)
 
 // ==================== 訊息模板 API ====================
 
-app.get('/api/message-templates', authenticate, async (req: any, res) => {
+app.get('/api/message-templates', authenticate, async (req: Request, res: Response) => {
     try {
         const templates = await db.select().from(messageTemplates)
-            .where(eq(messageTemplates.userId, req.userId))
+            .where(eq(messageTemplates.userId, req.userId!))
             .orderBy(desc(messageTemplates.createdAt));
 
         res.json({ templates });
@@ -528,16 +553,17 @@ app.get('/api/message-templates', authenticate, async (req: any, res) => {
     }
 });
 
-app.post('/api/message-templates', authenticate, async (req: any, res) => {
+app.post('/api/message-templates', authenticate, async (req: Request, res: Response) => {
     try {
         const { type, title, content } = req.body;
 
         if (!content) {
-            return res.status(400).json({ error: { code: 'INVALID_INPUT', message: '內容為必填' } });
+            res.status(400).json({ error: { code: 'INVALID_INPUT', message: '內容為必填' } });
+            return;
         }
 
         const [template] = await db.insert(messageTemplates).values({
-            userId: req.userId,
+            userId: req.userId!,
             type: type || 'custom',
             title: title || '自訂模板',
             content,
@@ -551,8 +577,16 @@ app.post('/api/message-templates', authenticate, async (req: any, res) => {
 });
 
 // 404 Handler
-app.use((req, res) => {
-    res.status(404).json({ error: { code: 'NOT_FOUND', message: '找不到此 API 路徑' } });
+app.use('*', (req, res) => {
+    // Debug 404
+    res.status(404).json({
+        error: { code: 'NOT_FOUND', message: '找不到此 API 路徑' },
+        debug: {
+            path: req.path,
+            url: req.url,
+            method: req.method
+        }
+    });
 });
 
 // Error Handler

@@ -11,18 +11,14 @@ import {
     SafeAreaView,
     TouchableOpacity,
     TextInput,
-    Alert,
-} from 'react-native';
-import { GradientBackground, StatusCard } from '../../components';
-import { COLORS, FONTS, SPACING, RADIUS, SHADOWS } from '../../theme';
-import { DEFAULT_CHECK_IN_SETTINGS } from '../../constants';
+import { contactsService } from '../../services/api';
 
 /**
  * 設置中心頁面
  * 包含簽到機制設定、緊急聯絡人管理
  */
 const SettingsScreen: React.FC = () => {
-    // 簽到機制設定
+    // 簽到機制設定 delay logic for now
     const [intervalDays, setIntervalDays] = useState(
         DEFAULT_CHECK_IN_SETTINGS.INTERVAL_DAYS.toString()
     );
@@ -31,19 +27,41 @@ const SettingsScreen: React.FC = () => {
     const [contactName, setContactName] = useState('');
     const [contactEmail, setContactEmail] = useState('');
     const [contactPhone, setContactPhone] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
 
     /**
-     * 處理儲存設定
+     * 處理儲存設定 (新增聯絡人)
      */
-    const handleSave = () => {
+    const handleSave = async () => {
         // 驗證輸入
-        if (!contactName.trim()) {
-            Alert.alert('錯誤', '請輸入聯絡人姓名');
+        if (!contactName.trim() || !contactPhone.trim()) {
+            Alert.alert('錯誤', '請輸入聯絡人姓名和電話');
             return;
         }
 
-        // TODO: 儲存至 Firebase
-        Alert.alert('成功', '設置已儲存');
+        setIsLoading(true);
+        try {
+            const result = await contactsService.create({
+                name: contactName,
+                phoneNumber: contactPhone,
+                email: contactEmail,
+                priority: 1, // Default priority
+            });
+
+            if (result.data) {
+                Alert.alert('成功', '聯絡人已新增');
+                // Clear form
+                setContactName('');
+                setContactPhone('');
+                setContactEmail('');
+            } else {
+                Alert.alert('失敗', result.error?.message || '新增失敗');
+            }
+        } catch (error) {
+            Alert.alert('錯誤', '連線發生問題');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (

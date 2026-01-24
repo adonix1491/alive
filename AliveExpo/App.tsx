@@ -590,54 +590,90 @@ const ProfileScreen: React.FC = () => {
 };
 
 // ============ 主應用 ============
+import { AuthProvider, useAuthContext } from './src/contexts/AuthContext';
+import LoginScreen from './src/screens/LoginScreen';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+
+const Stack = createNativeStackNavigator();
+
+const RootNavigator = () => {
+  const { isAuthenticated, isLoading } = useAuthContext();
+
+  if (isLoading) {
+    return (
+      <View style={[styles.container, styles.center]}>
+        <ActivityIndicator size="large" color={COLORS.primary} />
+      </View>
+    );
+  }
+
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      {isAuthenticated ? (
+        <Stack.Screen name="Main" component={MainTabNavigator} />
+      ) : (
+        <Stack.Screen name="Login" component={LoginScreen} />
+      )}
+    </Stack.Navigator>
+  );
+};
+
+const MainTabNavigator = () => {
+  return (
+    <Tab.Navigator
+      screenOptions={{
+        headerShown: false,
+        tabBarStyle: styles.tabBar,
+        tabBarActiveTintColor: COLORS.primary,
+        tabBarInactiveTintColor: COLORS.textLight,
+      }}
+    >
+      <Tab.Screen
+        name="Home"
+        component={HomeScreen}
+        options={{
+          tabBarLabel: '首頁',
+          tabBarIcon: ({ focused }) => <Text style={{ fontSize: 24 }}>{focused ? '🏠' : '🏠'}</Text>,
+        }}
+      />
+      <Tab.Screen
+        name="Settings"
+        component={SettingsScreen}
+        options={{
+          tabBarLabel: '設定',
+          tabBarIcon: ({ focused }) => <Text style={{ fontSize: 24 }}>⚙️</Text>,
+        }}
+      />
+      <Tab.Screen
+        name="Contacts"
+        component={ContactsScreen}
+        options={{
+          tabBarLabel: '聯絡人',
+          tabBarIcon: ({ focused }) => <Text style={{ fontSize: 24 }}>👥</Text>,
+        }}
+      />
+      <Tab.Screen
+        name="Profile"
+        component={ProfileScreen}
+        options={{
+          tabBarLabel: '我的',
+          tabBarIcon: ({ focused }) => <Text style={{ fontSize: 24 }}>👤</Text>,
+        }}
+      />
+    </Tab.Navigator>
+  );
+};
+
 export default function App() {
   return (
-    <SafeAreaProvider>
-      <NavigationContainer>
-        <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
-        <Tab.Navigator
-          screenOptions={{
-            headerShown: false,
-            tabBarStyle: styles.tabBar,
-            tabBarActiveTintColor: COLORS.primary,
-            tabBarInactiveTintColor: COLORS.textLight,
-          }}
-        >
-          <Tab.Screen
-            name="Home"
-            component={HomeScreen}
-            options={{
-              tabBarLabel: '首頁',
-              tabBarIcon: ({ focused }) => <Text style={{ fontSize: 24 }}>{focused ? '🏠' : '🏠'}</Text>,
-            }}
-          />
-          <Tab.Screen
-            name="Settings"
-            component={SettingsScreen}
-            options={{
-              tabBarLabel: '設定',
-              tabBarIcon: ({ focused }) => <Text style={{ fontSize: 24 }}>⚙️</Text>,
-            }}
-          />
-          <Tab.Screen
-            name="Contacts"
-            component={ContactsScreen}
-            options={{
-              tabBarLabel: '聯絡人',
-              tabBarIcon: ({ focused }) => <Text style={{ fontSize: 24 }}>👥</Text>,
-            }}
-          />
-          <Tab.Screen
-            name="Profile"
-            component={ProfileScreen}
-            options={{
-              tabBarLabel: '我的',
-              tabBarIcon: ({ focused }) => <Text style={{ fontSize: 24 }}>👤</Text>,
-            }}
-          />
-        </Tab.Navigator>
-      </NavigationContainer>
-    </SafeAreaProvider>
+    <AuthProvider>
+      <SafeAreaProvider>
+        <NavigationContainer>
+          <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
+          <RootNavigator />
+        </NavigationContainer>
+      </SafeAreaProvider>
+    </AuthProvider>
   );
 }
 

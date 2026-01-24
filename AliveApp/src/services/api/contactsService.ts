@@ -11,7 +11,7 @@ import authService from './authService';
 export interface EmergencyContact {
     id: number;
     name: string;
-    phone: string;
+    phoneNumber: string;
     email?: string;
     lineId?: string;
     relationship?: string;
@@ -24,7 +24,7 @@ export interface EmergencyContact {
  */
 export interface CreateContactParams {
     name: string;
-    phone: string;
+    phoneNumber: string;
     email?: string;
     lineId?: string;
     relationship?: string;
@@ -36,7 +36,7 @@ export interface CreateContactParams {
  */
 export interface UpdateContactParams {
     name?: string;
-    phone?: string;
+    phoneNumber?: string;
     email?: string;
     lineId?: string;
     relationship?: string;

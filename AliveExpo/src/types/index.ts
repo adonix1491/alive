@@ -5,41 +5,37 @@
 
 // 用戶資料類型
 export interface User {
-    id: string;
+    id: number;
     name: string;
     email: string;
-    phone?: string;
-    avatarUrl?: string;
-    createdAt: Date;
-    updatedAt: Date;
+    phoneNumber?: string | null;
+    avatarUrl?: string | null;
+    createdAt: string;
+    updatedAt: string;
 }
 
 // 簽到記錄類型
 export interface CheckInRecord {
-    id: string;
-    userId: string;
-    timestamp: Date;
-    status: CheckInStatus;
-    location?: {
-        latitude: number;
-        longitude: number;
-    };
+    id: number;
+    userId: number;
+    checkedAt: string;
+    latitude?: string | null;
+    longitude?: string | null;
+    note?: string | null;
 }
 
 export type CheckInStatus = 'completed' | 'missed' | 'pending';
 
 // 緊急聯絡人類型
 export interface EmergencyContact {
-    id: string;
-    userId: string;
+    id: number;
+    userId: number;
     name: string;
-    phone: string;
-    email?: string;
-    relationship?: string;
-    priority: number;
-    isEnabled: boolean;
-    createdAt: Date;
-    updatedAt: Date;
+    phoneNumber: string;
+    email?: string | null;
+    relationship?: string | null;
+    createdAt: string;
+    updatedAt: string;
 }
 
 // 通知渠道類型
@@ -72,15 +68,14 @@ export interface CheckInSettings {
 
 // 訊息模板類型
 export interface MessageTemplate {
-    id: string;
-    userId: string;
-    type: MessageTemplateType;
-    title: string;
+    id: number;
+    userId: number;
+    type: string;
+    title?: string | null;
     content: string;
     isDefault: boolean;
-    isActive: boolean;
-    createdAt: Date;
-    updatedAt: Date;
+    createdAt: string;
+    updatedAt: string;
 }
 
 export type MessageTemplateType = 'check_in' | 'emergency' | 'reminder' | 'custom';
