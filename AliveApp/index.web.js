@@ -2,6 +2,7 @@
  * ALIVE愛來 APP - Web 版入口 (Async Loading Mode)
  */
 
+import 'react-native-gesture-handler';
 if (typeof window !== 'undefined') {
     // Polyfill check
     if (!window.exports) window.exports = {};

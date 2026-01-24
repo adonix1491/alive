@@ -50,6 +50,7 @@ const imageLoaderConfiguration = {
 };
 
 module.exports = {
+    devtool: 'source-map',
     entry: path.resolve(appDirectory, 'index.web.js'),
     output: {
         path: path.resolve(appDirectory, 'dist'),
