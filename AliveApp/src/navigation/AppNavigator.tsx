@@ -5,7 +5,7 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { createStackNavigator } from '@react-navigation/stack';
+// import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Text, View, StyleSheet } from 'react-native';
 import { COLORS, FONTS, SPACING } from '../theme';
@@ -27,9 +27,7 @@ import { useAuth } from '../contexts/AuthContext';
 
 import { Platform } from 'react-native';
 
-const Stack = Platform.OS === 'web'
-    ? createStackNavigator<RootStackParamList>()
-    : createNativeStackNavigator<RootStackParamList>();
+const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator();
 
 /**

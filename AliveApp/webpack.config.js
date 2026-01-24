@@ -80,7 +80,6 @@ module.exports = {
     resolve: {
         alias: {
             'react-native': 'react-native-web',
-            '@react-navigation/stack': path.resolve(appDirectory, 'node_modules/@react-navigation/stack/src/index.tsx'),
         },
         extensions: ['.web.tsx', '.web.ts', '.tsx', '.ts', '.web.js', '.js', '.jsx', '.json'],
     },
