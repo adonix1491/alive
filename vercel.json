@@ -1,24 +1,26 @@
 {
+    "version": 2,
+    "builds": [
+        {
+            "src": "api/app.ts",
+            "use": "@vercel/node"
+        },
+        {
+            "src": "AliveApp/package.json",
+            "use": "@vercel/static-build",
+            "config": {
+                "distDir": "dist"
+            }
+        }
+    ],
     "rewrites": [
         {
-            "source": "/api/probe",
-            "destination": "/api/probe"
-        },
-        {
             "source": "/api/(.*)",
-            "destination": "/api"
-        },
-        {
-            "source": "/bundle.web.js",
-            "destination": "/AliveApp/dist/bundle.web.js"
-        },
-        {
-            "source": "/AliveApp/dist/(.*)",
-            "destination": "/AliveApp/dist/$1"
+            "destination": "/api/app.ts"
         },
         {
             "source": "/(.*)",
-            "destination": "/AliveApp/dist/index.html"
+            "destination": "/AliveApp/$1"
         }
     ]
 }
