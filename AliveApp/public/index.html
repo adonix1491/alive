@@ -76,6 +76,12 @@
     window.process = window.process || { env: { NODE_ENV: 'production' } };
     window.global = window; // Some libraries use 'global' instead of 'window'
 
+    // Polyfill require to prevent crashes from untransformed dependencies
+    window.require = function (id) {
+      console.warn('Polyfilled require called for:', id);
+      return window.module?.exports || {};
+    };
+
     // Inline Debugger - Runs before bundle
     window.onerror = function (message, source, lineno, colno, error) {
       var loadingText = document.getElementById('loading-text');
