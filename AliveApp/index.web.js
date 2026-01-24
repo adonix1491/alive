@@ -12,17 +12,31 @@ AppRegistry.registerComponent(appName, () => App);
 if (typeof document !== 'undefined') {
     const rootTag = document.getElementById('root');
 
-    // 隱藏載入畫面
-    const loadingElement = document.getElementById('loading');
-    if (loadingElement) {
-        setTimeout(() => {
-            loadingElement.style.opacity = '0';
-            loadingElement.style.transition = 'opacity 0.5s ease';
-            setTimeout(() => {
-                loadingElement.style.display = 'none';
-            }, 500);
-        }, 500);
-    }
+    // Global Error Handler
+    window.onerror = function (message, source, lineno, colno, error) {
+        console.error('Global Error:', message, error);
+        const loadingText = document.getElementById('loading-text');
+        if (loadingText) loadingText.innerText = '系統發生錯誤: ' + message;
+        return false;
+    };
 
-    AppRegistry.runApplication(appName, { rootTag });
+    try {
+        // 隱藏載入畫面
+        const loadingElement = document.getElementById('loading');
+        if (loadingElement) {
+            setTimeout(() => {
+                loadingElement.style.opacity = '0';
+                loadingElement.style.transition = 'opacity 0.5s ease';
+                setTimeout(() => {
+                    loadingElement.style.display = 'none';
+                }, 500);
+            }, 500);
+        }
+
+        AppRegistry.runApplication(appName, { rootTag });
+    } catch (e) {
+        console.error('App Mount Error:', e);
+        const loadingText = document.getElementById('loading-text');
+        if (loadingText) loadingText.innerText = '啟動失敗: ' + e.message;
+    }
 }
