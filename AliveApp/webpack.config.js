@@ -5,17 +5,19 @@ const webpack = require('webpack');
 const appDirectory = path.resolve(__dirname);
 const babelLoaderConfiguration = {
     test: /\.(js|jsx|ts|tsx)$/,
-    path.resolve(appDirectory, 'index.web.js'),
-    path.resolve(appDirectory, 'App.tsx'),
-    path.resolve(appDirectory, 'src'),
-    path.resolve(appDirectory, 'node_modules/react-native-vector-icons'),
-    path.resolve(appDirectory, 'node_modules/react-native-screens'),
-    path.resolve(appDirectory, 'node_modules/react-native-safe-area-context'),
-    path.resolve(appDirectory, 'node_modules/@react-navigation'),
-    // Handle hoisted modules in monorepo
-    path.resolve(appDirectory, '../node_modules/react-native-screens'),
-    path.resolve(appDirectory, '../node_modules/react-native-safe-area-context'),
-    path.resolve(appDirectory, '../node_modules/@react-navigation'),
+    include: [
+        path.resolve(appDirectory, 'index.web.js'),
+        path.resolve(appDirectory, 'App.tsx'),
+        path.resolve(appDirectory, 'src'),
+        path.resolve(appDirectory, 'node_modules/react-native-vector-icons'),
+        path.resolve(appDirectory, 'node_modules/react-native-screens'),
+        path.resolve(appDirectory, 'node_modules/react-native-safe-area-context'),
+        path.resolve(appDirectory, 'node_modules/@react-navigation'),
+        // Handle hoisted modules in monorepo
+        path.resolve(appDirectory, '../node_modules/react-native-screens'),
+        path.resolve(appDirectory, '../node_modules/react-native-safe-area-context'),
+        path.resolve(appDirectory, '../node_modules/@react-navigation'),
+    ],
     use: {
         loader: 'babel-loader',
         options: {
