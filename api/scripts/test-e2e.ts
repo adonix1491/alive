@@ -5,6 +5,7 @@
  */
 import * as dotenv from 'dotenv';
 import path from 'path';
+// Force reload .env from root
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
 import app from '../app';
@@ -55,6 +56,7 @@ async function executeFlow() {
     }
     const regData = await regRes.json();
     console.log('✅ Registration User ID:', regData.user.id);
+    console.log('📝 DB Return (User):', JSON.stringify(regData.user, null, 2));
     const token = regData.token;
 
     console.log('\n2️⃣  Testing Login...');
@@ -66,7 +68,8 @@ async function executeFlow() {
 
     if (!loginRes.ok) throw new Error('Login failed');
     const loginData = await loginRes.json();
-    console.log('✅ Login Successful. Token received.');
+    console.log('✅ Login Successful.');
+    console.log('📝 DB Return (Login User):', JSON.stringify(loginData.user, null, 2));
 
     console.log('\n3️⃣  Testing Check-in...');
     const checkInRes = await fetch(`${BASE_URL}/checkin`, {
@@ -86,7 +89,9 @@ async function executeFlow() {
         const err = await checkInRes.json();
         throw new Error(`Check-in failed: ${JSON.stringify(err)}`);
     }
-    console.log('✅ Check-in Successful');
+    const checkInData = await checkInRes.json();
+    console.log('✅ Check-in Successful.');
+    console.log('📝 DB Return (CheckIn):', JSON.stringify(checkInData, null, 2));
 
     console.log('\n4️⃣  Verifying History...');
     const historyRes = await fetch(`${BASE_URL}/checkin/history`, {
@@ -96,6 +101,7 @@ async function executeFlow() {
     const historyData = await historyRes.json();
     if (historyData.history.length === 0) throw new Error('History is empty after check-in');
     console.log(`✅ History verified. Total check-ins: ${historyData.total}`);
+    console.log('📝 DB Return (History Sample):', JSON.stringify(historyData.history[0], null, 2));
 
     console.log('\n🎉 ALL TESTS PASSED SUCCESSFULLY!');
 }
