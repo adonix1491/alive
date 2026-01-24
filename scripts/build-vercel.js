@@ -19,7 +19,7 @@ try {
     }
 
     console.log('⬇️ Installing dependencies...');
-    execSync('npm install', { cwd: aliveAppDir, stdio: 'inherit' });
+    execSync('npm install --legacy-peer-deps', { cwd: aliveAppDir, stdio: 'inherit' });
 
     console.log('🏗️ Building Web Assets...');
     execSync('npm run build:web', { cwd: aliveAppDir, stdio: 'inherit' });
