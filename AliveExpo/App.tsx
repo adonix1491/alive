@@ -23,6 +23,16 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import checkinService from './src/services/api/checkinService';
+import contactsService from './src/services/api/contactsService';
+import { useAuthContext } from './src/contexts/AuthContext';
+import { EmergencyContact } from './src/types';
+import { AuthProvider } from './src/contexts/AuthContext';
+import LoginScreen from './src/screens/LoginScreen';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { createStackNavigator } from '@react-navigation/stack';
+import { Platform } from 'react-native';
+import 'react-native-gesture-handler';
 
 // ============ 設計系統 ============
 const COLORS = {
@@ -71,9 +81,10 @@ const HomeScreen: React.FC = () => {
   useEffect(() => {
     const loadStatus = async () => {
       try {
-        const stored = await AsyncStorage.getItem(STORAGE_KEYS.CHECK_IN);
-        if (stored) {
-          const date = new Date(JSON.parse(stored));
+        const response = await checkinService.getHistory(1);
+        if (response.data && response.data.history.length > 0) {
+          const latest = response.data.history[0];
+          const date = new Date(latest.checkedAt);
           setLastCheckInTime(date);
 
           // 檢查是否為今日
@@ -90,7 +101,7 @@ const HomeScreen: React.FC = () => {
       }
     };
     loadStatus();
-  }, []);
+  }, [isCheckedIn]); // Add isCheckedIn to dependency to auto-refresh on change
 
   const handleCheckIn = useCallback(async () => {
     if (isCheckedIn) {
@@ -98,18 +109,24 @@ const HomeScreen: React.FC = () => {
       return;
     }
 
-    const now = new Date();
-    setIsCheckedIn(true);
-    setLastCheckInTime(now);
-
-    // 儲存簽到時間
     try {
-      await AsyncStorage.setItem(STORAGE_KEYS.CHECK_IN, JSON.stringify(now.getTime()));
-    } catch (e) {
-      console.error('Failed to save check-in');
-    }
+      const response = await checkinService.createCheckIn({
+        location: { latitude: 0, longitude: 0 }, // TODO: Get real location
+        note: 'App Check-in'
+      });
 
-    Alert.alert('簽到成功！✨', '您的平安已記錄，願您今天一切順利！');
+      if (response.data) {
+        const now = new Date();
+        setIsCheckedIn(true);
+        setLastCheckInTime(now);
+        Alert.alert('簽到成功！✨', '您的平安已記錄，願您今天一切順利！');
+      } else {
+        Alert.alert('簽到失敗', response.error?.message || '未知錯誤');
+      }
+    } catch (e) {
+      console.error('Failed to check in', e);
+      Alert.alert('簽到失敗', '網路連線異常');
+    }
   }, [isCheckedIn]);
 
   const getDateString = (): string => {
@@ -382,22 +399,12 @@ const ContactsScreen: React.FC = () => {
   useEffect(() => {
     const loadContacts = async () => {
       try {
-        const stored = await AsyncStorage.getItem(STORAGE_KEYS.CONTACTS);
-        if (stored) {
-          const parsedContacts = JSON.parse(stored);
-          // 確保 enabled 是 boolean
-          const safeContacts = parsedContacts.map((c: any) => ({
-            ...c,
-            enabled: c.enabled === true || c.enabled === 'true',
-          }));
-          setContacts(safeContacts);
-        } else {
-          // 預設資料
-          const defaults = [
-            { id: '1', name: '王媽媽', phone: '0912***456', enabled: true },
-            { id: '2', name: '陳爸爸', phone: '0923***789', enabled: true },
-          ];
-          setContacts(defaults);
+        const response = await contactsService.getContacts();
+        if (response.data) {
+          // Add enabled flag locally if API doesn't have it, or assume all API contacts are enabled
+          // API EmergencyContact doesn't have 'enabled' field usually, assume active.
+          // Adjust logic to match API type
+          setContacts(response.data.contacts);
         }
       } catch (e) {
         console.error('Failed to load contacts');
@@ -406,38 +413,33 @@ const ContactsScreen: React.FC = () => {
     loadContacts();
   }, []);
 
-  const saveContacts = async (newContacts: any[]) => {
-    setContacts(newContacts);
-    try {
-      await AsyncStorage.setItem(STORAGE_KEYS.CONTACTS, JSON.stringify(newContacts));
-    } catch (e) {
-      console.error('Failed to save contacts');
-    }
-  };
+  // Removed saveContacts as sync is handling by individual Add/Delete calls
 
   const toggleContact = (id: string) => {
-    const updated = contacts.map(c => (c.id === id ? { ...c, enabled: !c.enabled } : c));
-    saveContacts(updated);
+    // API doesn't support toggle enable currently
+    Alert.alert('提示', '暫不支援停用聯絡人');
   };
 
-  const handleAddContact = () => {
+  const handleAddContact = async () => {
     if (!newName.trim() || !newPhone.trim()) {
       Alert.alert('錯誤', '請填寫姓名和電話');
       return;
     }
 
-    const newContact = {
-      id: Date.now().toString(),
-      name: newName,
-      phone: newPhone,
-      enabled: true,
-    };
-
-    saveContacts([...contacts, newContact]);
-    setNewName('');
-    setNewPhone('');
-    setShowAddModal(false);
-    Alert.alert('成功', '聯絡人已新增');
+    try {
+      const response = await contactsService.addContact(newName, newPhone);
+      if (response.data) {
+        setContacts([...contacts, response.data.contact]);
+        setNewName('');
+        setNewPhone('');
+        setShowAddModal(false);
+        Alert.alert('成功', '聯絡人已新增');
+      } else {
+        Alert.alert('失敗', response.error?.message || '新增失敗');
+      }
+    } catch (e) {
+      Alert.alert('錯誤', '網路連線異常');
+    }
   };
 
   const handleDeleteContact = (id: string, name: string) => {
@@ -446,9 +448,22 @@ const ContactsScreen: React.FC = () => {
       {
         text: '刪除',
         style: 'destructive',
-        onPress: () => {
-          const updated = contacts.filter(c => c.id !== id);
-          saveContacts(updated);
+        onPress: async () => {
+          try {
+            // id string vs number mismatch? The API uses integer ID.
+            const numId = parseInt(id);
+            if (!isNaN(numId)) {
+              await contactsService.deleteContact(numId);
+              const updated = contacts.filter(c => c.id !== id && c.id !== numId); // Handle both types just in case
+              setContacts(updated);
+            } else {
+              // Fallback for local mock data if any
+              const updated = contacts.filter(c => c.id !== id);
+              setContacts(updated);
+            }
+          } catch (e) {
+            Alert.alert('錯誤', '刪除失敗');
+          }
         },
       },
     ]);
@@ -590,11 +605,10 @@ const ProfileScreen: React.FC = () => {
 };
 
 // ============ 主應用 ============
-import { AuthProvider, useAuthContext } from './src/contexts/AuthContext';
-import LoginScreen from './src/screens/LoginScreen';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+// Web (JS-based) vs. Native (Native-based) Navigator
 
-const Stack = createNativeStackNavigator();
+// Web (JS-based) vs. Native (Native-based) Navigator
+const Stack = Platform.OS === 'web' ? createStackNavigator() : createNativeStackNavigator();
 
 const RootNavigator = () => {
   const { isAuthenticated, isLoading } = useAuthContext();

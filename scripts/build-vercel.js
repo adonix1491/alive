@@ -3,28 +3,27 @@ const fs = require('fs');
 const path = require('path');
 
 const rootDir = path.resolve(__dirname, '..');
-const aliveAppDir = path.join(rootDir, 'AliveApp');
+const aliveExpoDir = path.join(rootDir, 'AliveExpo');
 const publicDir = path.join(rootDir, 'public');
 
-console.log('🚀 Starting Vercel Build Script...');
+console.log('🚀 Starting Vercel Build Script for AliveExpo...');
 
 try {
-    // 1. Install and Build AliveApp
-    console.log('📦 Building AliveApp (Clean Build)...');
+    // 1. Install and Build AliveExpo
+    console.log('📦 Building AliveExpo...');
 
-    // Force clean install to prevent caching issues
-    console.log('🧹 Cleaning previous artifacts...');
-    try {
-        if (fs.existsSync(path.join(aliveAppDir, 'node_modules'))) {
-            fs.rmSync(path.join(aliveAppDir, 'node_modules'), { recursive: true, force: true });
-        }
-        if (fs.existsSync(path.join(aliveAppDir, 'dist'))) {
-            fs.rmSync(path.join(aliveAppDir, 'dist'), { recursive: true, force: true });
-        }
-    } catch (e) { console.warn('Cleanup warning:', e); }
+    // Clean previous dist but preserve node_modules for cache
+    if (fs.existsSync(path.join(aliveExpoDir, 'dist'))) {
+        console.log('🧹 Cleaning previous dist...');
+        fs.rmSync(path.join(aliveExpoDir, 'dist'), { recursive: true, force: true });
+    }
 
-    execSync('npm install', { cwd: aliveAppDir, stdio: 'inherit' });
-    execSync('npm run build:web', { cwd: aliveAppDir, stdio: 'inherit' });
+    console.log('⬇️ Installing dependencies...');
+    execSync('npm install', { cwd: aliveExpoDir, stdio: 'inherit' });
+
+    console.log('🏗️ generic Expo Web Export...');
+    // Ensure we use the locally installed expo CLI
+    execSync('npx expo export --platform web', { cwd: aliveExpoDir, stdio: 'inherit' });
 
     // 2. Prepare Root Public Directory
     console.log('📂 Preparing public directory...');
@@ -34,9 +33,9 @@ try {
     fs.mkdirSync(publicDir);
 
     // 3. Copy Build Artifacts
-    const distDir = path.join(aliveAppDir, 'dist');
+    const distDir = path.join(aliveExpoDir, 'dist');
     if (!fs.existsSync(distDir)) {
-        throw new Error('Build failed: AliveApp/dist directory not found!');
+        throw new Error('Build failed: AliveExpo/dist directory not found!');
     }
 
     console.log(`📋 Copying files from ${distDir} to ${publicDir}...`);
