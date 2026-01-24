@@ -116,6 +116,7 @@ export type RootStackParamList = {
     Auth: undefined;
     Login: undefined;
     Register: undefined;
+    MainTabs: undefined;
     Main: undefined;
     Home: undefined;
     Settings: undefined;
