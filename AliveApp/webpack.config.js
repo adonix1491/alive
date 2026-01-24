@@ -13,6 +13,8 @@ const babelLoaderConfiguration = {
         path.resolve(appDirectory, 'node_modules/react-native-screens'),
         path.resolve(appDirectory, 'node_modules/react-native-safe-area-context'),
         path.resolve(appDirectory, 'node_modules/react-native-gesture-handler'),
+        path.resolve(appDirectory, 'node_modules/react-native-reanimated'),
+        path.resolve(appDirectory, 'node_modules/react-native-worklets'),
         path.resolve(appDirectory, 'node_modules/@react-navigation'),
         // Handle hoisted modules in monorepo
         path.resolve(appDirectory, '../node_modules/react-native-screens'),
@@ -30,6 +32,7 @@ const babelLoaderConfiguration = {
             ],
             plugins: [
                 'react-native-web',
+                'react-native-reanimated/plugin',
             ],
         },
     },
@@ -77,6 +80,7 @@ module.exports = {
     resolve: {
         alias: {
             'react-native': 'react-native-web',
+            '@react-navigation/stack': path.resolve(appDirectory, 'node_modules/@react-navigation/stack/src/index.tsx'),
         },
         extensions: ['.web.tsx', '.web.ts', '.tsx', '.ts', '.web.js', '.js', '.jsx', '.json'],
     },
