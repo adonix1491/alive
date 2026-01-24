@@ -20,6 +20,18 @@ if (typeof document !== 'undefined') {
         return false;
     };
 
+    window.addEventListener('unhandledrejection', function (event) {
+        // Prevent default console logging
+        // event.preventDefault();
+        console.error('Unhandled Rejection:', event.reason);
+        const loadingText = document.getElementById('loading-text');
+        if (loadingText) loadingText.innerText = '非同步錯誤: ' + (event.reason ? event.reason.message || event.reason : 'Unknown');
+    });
+
+    // Immediate feedback
+    const loadingText = document.getElementById('loading-text');
+    if (loadingText) loadingText.innerText = '初始化中...';
+
     try {
         // 隱藏載入畫面
         const loadingElement = document.getElementById('loading');
