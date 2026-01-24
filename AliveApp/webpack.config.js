@@ -25,6 +25,7 @@ const babelLoaderConfiguration = {
         loader: 'babel-loader',
         options: {
             cacheDirectory: true,
+            configFile: false, // 禁止加載 babel.config.js (Metro 配置)
             sourceType: "unambiguous",
             presets: [
                 ['@babel/preset-env', { targets: "defaults" }],
