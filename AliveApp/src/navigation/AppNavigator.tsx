@@ -4,7 +4,7 @@
  */
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { createStackNavigator } from '@react-navigation/stack'; // Switched to JS Stack for Web Stability
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Text, View, StyleSheet } from 'react-native';
 import { COLORS, FONTS, SPACING } from '../theme';
@@ -24,8 +24,8 @@ import {
 import { AuthScreen } from '../screens/AuthScreen';
 import { useAuth } from '../contexts/AuthContext';
 
-// 創建導航器
-const Stack = createNativeStackNavigator<RootStackParamList>();
+// 創建導航器 - Use JS Stack to avoid 'createNativeStackNavigator' web crashes
+const Stack = createStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator();
 
 /**
