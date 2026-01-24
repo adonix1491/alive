@@ -70,6 +70,11 @@
     }
   </style>
   <script>
+    // Critical Polyfills for Native Dependencies
+    window.exports = window.exports || {};
+    window.module = window.module || { exports: window.exports };
+    window.process = window.process || { env: { NODE_ENV: 'production' } };
+
     // Inline Debugger - Runs before bundle
     window.onerror = function (message, source, lineno, colno, error) {
       var loadingText = document.getElementById('loading-text');
