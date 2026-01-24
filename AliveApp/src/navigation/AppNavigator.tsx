@@ -4,7 +4,7 @@
  */
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Text, View, StyleSheet } from 'react-native';
 import { COLORS, FONTS, SPACING } from '../theme';
@@ -24,7 +24,7 @@ import {
 import { AuthScreen } from '../screens/AuthScreen';
 import { useAuth } from '../contexts/AuthContext';
 
-const Stack = createStackNavigator<RootStackParamList>();
+const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator();
 
 /**
@@ -107,7 +107,7 @@ const AppNavigator: React.FC = () => {
 
     //  載入中顯示空白畫面
     if (isLoading) {
-        return null;
+        return null; // Or return a loading spinner if preferred
     }
 
     return (
