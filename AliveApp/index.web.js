@@ -5,8 +5,14 @@ import { AppRegistry } from 'react-native';
 import App from './App';
 import { name as appName } from './app.json';
 
+import GlobalErrorBoundary from './src/components/GlobalErrorBoundary';
+
 // 註冊 App
-AppRegistry.registerComponent(appName, () => App);
+AppRegistry.registerComponent(appName, () => () => (
+    <GlobalErrorBoundary>
+        <App />
+    </GlobalErrorBoundary>
+));
 
 // Web 版本掛載
 if (typeof document !== 'undefined') {
