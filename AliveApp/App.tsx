@@ -2,6 +2,7 @@
  * ALIVE愛來 APP - 主應用入口
  * 安全簽到應用程式的根元件
  */
+import 'react-native-gesture-handler';
 import React, { useEffect, useState } from 'react';
 import { StatusBar, View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { AppNavigator } from './src/navigation';
