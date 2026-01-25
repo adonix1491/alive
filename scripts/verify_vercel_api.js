@@ -8,7 +8,7 @@ const data = JSON.stringify({
 const options = {
     hostname: 'alive-iota.vercel.app',
     port: 443,
-    path: '/api/auth/guest-login',
+    path: '/api/guest-login',
     method: 'POST',
     headers: {
         'Content-Type': 'application/json',
