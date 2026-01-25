@@ -336,16 +336,25 @@ const ProfileScreen: React.FC = () => {
                                     <TouchableOpacity
                                         style={styles.loginButton}
                                         onPress={async () => {
+                                            console.log('[ProfileScreen] Binding button pressed');
+                                            console.log('[ProfileScreen] Values:', { guestPhone, guestName, guestEmail, guestLineId });
+
                                             if (!guestPhone) {
+                                                console.log('[ProfileScreen] No phone number');
                                                 Alert.alert('提示', '請輸入手機號碼');
                                                 return;
                                             }
                                             setIsGuestLoading(true);
                                             try {
+                                                console.log('[ProfileScreen] Calling guestLogin...');
                                                 const result = await guestLogin(guestPhone, guestName, guestEmail, guestLineId);
+                                                console.log('[ProfileScreen] guestLogin result:', result);
+
                                                 if (!result.success) {
+                                                    console.error('[ProfileScreen] Login failed:', result.error);
                                                     Alert.alert('綁定失敗', result.error);
                                                 } else {
+                                                    console.log('[ProfileScreen] Login success');
                                                     Alert.alert('綁定成功', '您現在可以使用簽到功能了！');
                                                     setGuestPhone('');
                                                     setGuestName('');
@@ -353,6 +362,7 @@ const ProfileScreen: React.FC = () => {
                                                     setGuestLineId('');
                                                 }
                                             } catch (err) {
+                                                console.error('[ProfileScreen] Exception:', err);
                                                 Alert.alert('錯誤', '發生未預期的錯誤');
                                             } finally {
                                                 setIsGuestLoading(false);

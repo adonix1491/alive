@@ -12,6 +12,8 @@ export const API_BASE_URL = process.env.NODE_ENV === 'development'
     ? 'http://localhost:3000/api'
     : 'https://alive-iota.vercel.app/api';
 
+console.log('[Config] API_BASE_URL:', API_BASE_URL);
+
 // Token 儲存 key
 export const AUTH_TOKEN_KEY = '@alive_auth_token';
 
