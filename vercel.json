@@ -6,7 +6,11 @@
             "destination": "/api/auth/guest-login"
         },
         {
-            "source": "/api/:path*",
+            "source": "/api/test-ping",
+            "destination": "/api/test-ping"
+        },
+        {
+            "source": "/api/((?!auth/guest-login|test-ping).*)",
             "destination": "/api/index.ts"
         },
         {
