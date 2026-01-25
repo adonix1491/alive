@@ -50,6 +50,19 @@ export async function apiRequest<T = any>(
             },
         });
 
+        // Prevention: Check if response is HTML (Vercel Error or Static Fallback)
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('text/html')) {
+            console.error('[API] Received HTML response instead of JSON. Endpoint:', endpoint);
+            return {
+                error: {
+                    code: 'API_INVALID_RESPONSE',
+                    message: '伺服器維護中 (回傳格式錯誤)',
+                    details: 'Received HTML instead of JSON',
+                },
+            };
+        }
+
         const data = await response.json();
 
         if (!response.ok) {
@@ -63,6 +76,7 @@ export async function apiRequest<T = any>(
 
         return { data };
     } catch (error: any) {
+        console.error('[API] Request failed:', error);
         return {
             error: {
                 code: 'NETWORK_ERROR',
