@@ -11,7 +11,7 @@ interface AuthContextType {
     isAuthenticated: boolean;
     login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
     register: (email: string, password: string, name: string, phoneNumber?: string) => Promise<{ success: boolean; error?: string }>;
-    guestLogin: (phoneNumber: string, name?: string) => Promise<{ success: boolean; error?: string }>;
+    guestLogin: (phoneNumber: string, name?: string, email?: string, lineId?: string) => Promise<{ success: boolean; error?: string }>;
     logout: () => Promise<void>;
     refreshUser: () => Promise<void>;
 }
@@ -71,9 +71,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
     };
 
-    const guestLogin = async (phoneNumber: string, name?: string) => {
+    const guestLogin = async (phoneNumber: string, name?: string, email?: string, lineId?: string) => {
         try {
-            const response = await authService.guestLogin({ phoneNumber, name });
+            const response = await authService.guestLogin({ phoneNumber, name, email, lineId });
             if (response.data) {
                 setUser(response.data.user);
                 return { success: true };

@@ -14,7 +14,9 @@ async function testGuestWorkflow() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
             phoneNumber: phone,
-            name: "Test Guest"
+            name: "Test Guest",
+            email: `test_${phone}@example.com`,
+            lineId: `line_${phone}`
         })
     });
 

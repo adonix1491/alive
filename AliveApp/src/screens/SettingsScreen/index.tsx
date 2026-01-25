@@ -18,11 +18,17 @@ import { contactsService } from '../../services/api';
 import { DEFAULT_CHECK_IN_SETTINGS } from '../../constants';
 import { COLORS, FONTS, SPACING, RADIUS, SHADOWS } from '../../theme';
 
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../../types';
+
 /**
  * 設置中心頁面
  * 包含簽到機制設定、緊急聯絡人管理
  */
 const SettingsScreen: React.FC = () => {
+    const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+
     // 簽到機制設定 delay logic
     const [intervalDays, setIntervalDays] = useState(
         DEFAULT_CHECK_IN_SETTINGS.INTERVAL_DAYS.toString()
@@ -30,10 +36,6 @@ const SettingsScreen: React.FC = () => {
 
     // 緊急聯絡人資料
     const [contacts, setContacts] = useState<any[]>([]);
-    const [contactName, setContactName] = useState('');
-    const [contactEmail, setContactEmail] = useState('');
-    const [contactPhone, setContactPhone] = useState('');
-    const [isLoading, setIsLoading] = useState(false);
 
     // 載入聯絡人
     React.useEffect(() => {
@@ -51,44 +53,7 @@ const SettingsScreen: React.FC = () => {
         }
     };
 
-    /**
-     * 新增聯絡人
-     */
-    const handleAddContact = async () => {
-        if (!contactName.trim() || !contactPhone.trim()) {
-            Alert.alert('錯誤', '請輸入聯絡人姓名和電話');
-            return;
-        }
 
-        if (contacts.length >= 5) {
-            Alert.alert('限制', '最多只能新增 5 位緊急聯絡人');
-            return;
-        }
-
-        setIsLoading(true);
-        try {
-            const result = await contactsService.create({
-                name: contactName,
-                phoneNumber: contactPhone,
-                email: contactEmail,
-                priority: contacts.length + 1,
-            });
-
-            if (result.data) {
-                Alert.alert('成功', '聯絡人已新增');
-                setContactName('');
-                setContactPhone('');
-                setContactEmail('');
-                loadContacts(); // Reload list
-            } else {
-                Alert.alert('失敗', result.error?.message || '新增失敗');
-            }
-        } catch (error) {
-            Alert.alert('錯誤', '連線發生問題');
-        } finally {
-            setIsLoading(false);
-        }
-    };
 
     /**
      * 刪除聯絡人
@@ -161,55 +126,21 @@ const SettingsScreen: React.FC = () => {
                         ))}
                     </View>
 
-                    {/* 新增聯絡人表單 */}
+                    {/* 通知訊息設定 */}
                     <View style={styles.section}>
                         <View style={styles.sectionHeader}>
-                            <Text style={styles.sectionIcon}>➕</Text>
-                            <Text style={styles.sectionTitle}>新增聯絡人</Text>
+                            <Text style={styles.sectionIcon}>💬</Text>
+                            <Text style={styles.sectionTitle}>通知訊息</Text>
                         </View>
-
-                        <View style={styles.card}>
-                            <View style={styles.field}>
-                                <Text style={styles.fieldLabel}>姓名</Text>
-                                <TextInput
-                                    style={styles.input}
-                                    value={contactName}
-                                    onChangeText={setContactName}
-                                    placeholder="姓名"
-                                    placeholderTextColor={COLORS.textLight}
-                                />
+                        <TouchableOpacity
+                            style={styles.card}
+                            onPress={() => navigation.navigate('MessageTemplates')}
+                        >
+                            <View style={styles.rowBetween}>
+                                <Text style={styles.fieldLabel}>預設訊息內容</Text>
+                                <Text style={styles.valueText}>系統預設 ›</Text>
                             </View>
-                            <View style={styles.field}>
-                                <Text style={styles.fieldLabel}>電話</Text>
-                                <TextInput
-                                    style={styles.input}
-                                    value={contactPhone}
-                                    onChangeText={setContactPhone}
-                                    placeholder="電話"
-                                    keyboardType="phone-pad"
-                                    placeholderTextColor={COLORS.textLight}
-                                />
-                            </View>
-                            <View style={styles.field}>
-                                <Text style={styles.fieldLabel}>Email (選填)</Text>
-                                <TextInput
-                                    style={styles.input}
-                                    value={contactEmail}
-                                    onChangeText={setContactEmail}
-                                    placeholder="Email"
-                                    keyboardType="email-address"
-                                    placeholderTextColor={COLORS.textLight}
-                                />
-                            </View>
-
-                            <TouchableOpacity
-                                style={styles.saveButton}
-                                onPress={handleAddContact}
-                                disabled={isLoading}
-                            >
-                                <Text style={styles.saveButtonText}>{isLoading ? '處理中...' : '新增聯絡人'}</Text>
-                            </TouchableOpacity>
-                        </View>
+                        </TouchableOpacity>
                     </View>
                 </ScrollView>
             </SafeAreaView>
@@ -240,7 +171,9 @@ const styles = StyleSheet.create({
     contactName: { fontWeight: 'bold', fontSize: 16, color: '#333' },
     contactPhone: { fontSize: 14, color: '#666' },
     deleteButton: { backgroundColor: '#ff4444', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 4 },
-    deleteText: { color: 'white', fontSize: 12 }
+    deleteText: { color: 'white', fontSize: 12 },
+    rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+    valueText: { fontSize: 14, color: COLORS.textSecondary },
 });
 
 export default SettingsScreen;

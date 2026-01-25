@@ -52,6 +52,8 @@ const ProfileScreen: React.FC = () => {
     // 訪客登入 State
     const [guestPhone, setGuestPhone] = useState('');
     const [guestName, setGuestName] = useState('');
+    const [guestEmail, setGuestEmail] = useState('');
+    const [guestLineId, setGuestLineId] = useState('');
     const [isGuestLoading, setIsGuestLoading] = useState(false);
 
     // 初始化編輯資料
@@ -310,6 +312,27 @@ const ProfileScreen: React.FC = () => {
                                         onChangeText={setGuestName}
                                     />
 
+                                    <Text style={styles.inputLabel}>電子信箱 (選填)</Text>
+                                    <TextInput
+                                        style={styles.input}
+                                        placeholder="例：example@email.com"
+                                        placeholderTextColor={COLORS.textLight}
+                                        value={guestEmail}
+                                        onChangeText={setGuestEmail}
+                                        keyboardType="email-address"
+                                        autoCapitalize="none"
+                                    />
+
+                                    <Text style={styles.inputLabel}>LINE ID (選填)</Text>
+                                    <TextInput
+                                        style={styles.input}
+                                        placeholder="例：line_id_123"
+                                        placeholderTextColor={COLORS.textLight}
+                                        value={guestLineId}
+                                        onChangeText={setGuestLineId}
+                                        autoCapitalize="none"
+                                    />
+
                                     <TouchableOpacity
                                         style={styles.loginButton}
                                         onPress={async () => {
@@ -319,13 +342,15 @@ const ProfileScreen: React.FC = () => {
                                             }
                                             setIsGuestLoading(true);
                                             try {
-                                                const result = await guestLogin(guestPhone, guestName);
+                                                const result = await guestLogin(guestPhone, guestName, guestEmail, guestLineId);
                                                 if (!result.success) {
                                                     Alert.alert('綁定失敗', result.error);
                                                 } else {
                                                     Alert.alert('綁定成功', '您現在可以使用簽到功能了！');
                                                     setGuestPhone('');
                                                     setGuestName('');
+                                                    setGuestEmail('');
+                                                    setGuestLineId('');
                                                 }
                                             } catch (err) {
                                                 Alert.alert('錯誤', '發生未預期的錯誤');

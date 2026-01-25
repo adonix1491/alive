@@ -12,6 +12,7 @@ export const users = pgTable('users', {
     password: text('password').notNull(),
     name: text('name').notNull(),
     phoneNumber: text('phone_number'),
+    lineId: text('line_id'),
     avatarUrl: text('avatar_url'),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),

@@ -144,7 +144,7 @@ app.post('/api/auth/login', async (req: Request, res: Response) => {
 
 app.post('/api/auth/guest-login', async (req: Request, res: Response) => {
     try {
-        const { phoneNumber, name } = req.body;
+        const { phoneNumber, name, email, lineId } = req.body;
 
         if (!phoneNumber) {
             res.status(400).json({ error: { code: 'INVALID_INPUT', message: '手機號碼為必填' } });
@@ -156,12 +156,24 @@ app.post('/api/auth/guest-login', async (req: Request, res: Response) => {
         let user = existingUsers[0];
 
         if (!user) {
-            const guestEmail = `guest_${phoneNumber}@alive.app`;
-            const emailCheck = await db.select().from(users).where(eq(users.email, guestEmail)).limit(1);
-
-            if (emailCheck.length > 0) {
-                user = emailCheck[0];
+            // Check if email provided is already taken (if provided)
+            let guestEmail = `guest_${phoneNumber}@alive.app`;
+            if (email) {
+                const emailCheck = await db.select().from(users).where(eq(users.email, email)).limit(1);
+                if (emailCheck.length > 0) {
+                    res.status(409).json({ error: { code: 'EMAIL_EXISTS', message: '此 Email 已被註冊' } });
+                    return;
+                }
+                guestEmail = email;
             } else {
+                // Check if generated guest email collision (rare but possible)
+                const emailCheck = await db.select().from(users).where(eq(users.email, guestEmail)).limit(1);
+                if (emailCheck.length > 0) {
+                    user = emailCheck[0];
+                }
+            }
+
+            if (!user) {
                 const randomPassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8);
                 const hashedPassword = await hashPassword(randomPassword);
                 const userName = name || `Guest ${phoneNumber.slice(-4)}`;
@@ -171,6 +183,7 @@ app.post('/api/auth/guest-login', async (req: Request, res: Response) => {
                     email: guestEmail,
                     password: hashedPassword,
                     phoneNumber: phoneNumber,
+                    lineId: lineId || null,
                 }).returning();
                 user = newUser;
 
@@ -180,13 +193,29 @@ app.post('/api/auth/guest-login', async (req: Request, res: Response) => {
                     lineEnabled: false,
                 });
             }
+        } else {
+            // Update existing user with new info if provided (Lazy Registration)
+            const updates: any = {};
+            if (name && name !== user.name) updates.name = name;
+            if (email && email !== user.email && !user.email.startsWith('guest_')) {
+                // Danger: Email update requires validation usually, but for guest binding we might skip
+            }
+            if (lineId && lineId !== user.lineId) updates.lineId = lineId;
+
+            if (Object.keys(updates).length > 0) {
+                const [updated] = await db.update(users).set({
+                    ...updates,
+                    updatedAt: new Date(),
+                }).where(eq(users.id, user.id)).returning();
+                user = updated;
+            }
         }
 
         const token = generateToken(user.id);
 
         res.json({
             token,
-            user: { id: user.id, name: user.name, email: user.email, phoneNumber: user.phoneNumber },
+            user: { id: user.id, name: user.name, email: user.email, phoneNumber: user.phoneNumber, lineId: user.lineId },
         });
 
     } catch (error) {
@@ -234,7 +263,7 @@ app.get('/api/user/profile', authenticate, async (req: Request, res: Response) =
 
 app.put('/api/user/profile', authenticate, async (req: Request, res: Response) => {
     try {
-        const { name, phoneNumber } = req.body;
+        const { name, phoneNumber, lineId } = req.body;
 
         if (!name) {
             res.status(400).json({ error: { code: 'INVALID_INPUT', message: '姓名為必填' } });
@@ -244,8 +273,10 @@ app.put('/api/user/profile', authenticate, async (req: Request, res: Response) =
         const [updatedUser] = await db.update(users).set({
             name,
             phoneNumber: phoneNumber ?? null,
+            lineId: lineId ?? null,
+            updatedAt: new Date(),
         }).where(eq(users.id, req.userId!)).returning({
-            id: users.id, name: users.name, email: users.email, phoneNumber: users.phoneNumber,
+            id: users.id, name: users.name, email: users.email, phoneNumber: users.phoneNumber, lineId: users.lineId
         });
 
         res.json({ user: updatedUser });

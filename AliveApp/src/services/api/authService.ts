@@ -90,7 +90,7 @@ class AuthService {
     /**
      * 訪客登入 (手機號碼綁定)
      */
-    async guestLogin(params: { phoneNumber: string; name?: string }): Promise<ApiResponse<AuthResponse>> {
+    async guestLogin(params: { phoneNumber: string; name?: string; email?: string; lineId?: string }): Promise<ApiResponse<AuthResponse>> {
         const response = await apiRequest<AuthResponse>('/auth/guest-login', {
             method: 'POST',
             body: JSON.stringify(params),

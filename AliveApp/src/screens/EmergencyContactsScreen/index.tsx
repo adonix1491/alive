@@ -21,6 +21,7 @@ import { COLORS, FONTS, SPACING, RADIUS, SHADOWS } from '../../theme';
 import { contactsService } from '../../services/api';
 import { EmergencyContact } from '../../services/api/contactsService';
 import { useNavigation } from '@react-navigation/native';
+import { useAuth } from '../../contexts/AuthContext';
 
 /**
  * 緊急聯絡人管理頁面
@@ -112,7 +113,22 @@ const EmergencyContactsScreen: React.FC = () => {
     };
 
     // 開啟新增模式
+    const { user } = useAuth();
+
     const openAddModal = () => {
+        // 檢查是否已綁定個人資訊
+        if (!user || !user.phoneNumber || !user.name || user.name.startsWith('Guest ')) {
+            Alert.alert(
+                '尚未綁定個人資訊',
+                '新增聯絡人前，請先完成個人資訊綁定（需設定姓名與電話）。',
+                [
+                    { text: '取消', style: 'cancel' },
+                    { text: '前往綁定', onPress: () => navigation.navigate('Profile' as never) }
+                ]
+            );
+            return;
+        }
+
         setEditingContact(null);
         setFormName('');
         setFormPhone('');
@@ -124,7 +140,7 @@ const EmergencyContactsScreen: React.FC = () => {
     const openEditModal = (contact: EmergencyContact) => {
         setEditingContact(contact);
         setFormName(contact.name);
-        setFormPhone(contact.phone);
+        setFormPhone(contact.phoneNumber);
         setFormLineId(contact.lineId || '');
         setIsModalVisible(true);
     };
@@ -145,7 +161,7 @@ const EmergencyContactsScreen: React.FC = () => {
         try {
             const contactData = {
                 name: formName,
-                phone: formPhone,
+                phoneNumber: formPhone,
                 lineId: formLineId,
             };
 
@@ -189,7 +205,7 @@ const EmergencyContactsScreen: React.FC = () => {
                 <View style={styles.contactDetails}>
                     <Text style={styles.contactName}>{item.name}</Text>
                     <View style={styles.contactMeta}>
-                        {!!item.phone && <Text style={styles.contactPhone}>📞 {item.phone}</Text>}
+                        {!!item.phoneNumber && <Text style={styles.contactPhone}>📞 {item.phoneNumber}</Text>}
                         {!!item.lineId && <Text style={styles.contactLine}>💬 {item.lineId}</Text>}
                     </View>
                     {!item.isEnabled && (
