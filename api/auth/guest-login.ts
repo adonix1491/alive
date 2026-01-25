@@ -1,8 +1,8 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { db } from '../../lib/db';
-import { users, notificationSettings } from '../../schema/schema';
+import { db } from '../lib/db';
+import { users, notificationSettings } from '../schema/schema';
 import { eq } from 'drizzle-orm';
-import { hashPassword, generateToken } from '../../lib/auth';
+import { hashPassword, generateToken } from '../lib/auth';
 
 // Enable CORS helper
 const allowCors = (fn: any) => async (req: VercelRequest, res: VercelResponse) => {
