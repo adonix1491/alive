@@ -10,6 +10,7 @@
         "dev:web": "cd AliveApp && npm run web",
         "dev:expo": "cd AliveExpo && npm start",
         "dev": "vercel dev",
+        "postinstall": "node scripts/build-vercel.js",
         "build:web": "node scripts/build-vercel.js",
         "db:generate": "drizzle-kit generate",
         "db:push": "drizzle-kit push",
