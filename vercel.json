@@ -1,10 +1,7 @@
 {
     "version": 2,
+    "cleanUrls": true,
     "rewrites": [
-        {
-            "source": "/api/probe",
-            "destination": "/api/probe"
-        },
         {
             "source": "/api/(.*)",
             "destination": "/api/index"

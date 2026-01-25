@@ -44,14 +44,19 @@ export async function apiRequest<T = any>(
     endpoint: string,
     options: RequestInit = {}
 ): Promise<ApiResponse<T>> {
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), 8000); // 8 second timeout
+
     try {
         const response = await fetch(`${API_BASE_URL}${endpoint}`, {
             ...options,
+            signal: controller.signal,
             headers: {
                 'Content-Type': 'application/json',
                 ...options.headers,
             },
         });
+        clearTimeout(id);
 
         // Prevention: Check if response is HTML (Vercel Error or Static Fallback)
         const contentType = response.headers.get('content-type');
@@ -84,7 +89,7 @@ export async function apiRequest<T = any>(
             error: {
                 code: 'NETWORK_ERROR',
                 message: '網路錯誤，請檢查連線',
-                details: error.message,
+                details: error.name === 'AbortError' ? 'Request timed out' : error.message,
             },
         };
     }
