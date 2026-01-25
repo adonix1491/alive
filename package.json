@@ -6,7 +6,6 @@
     "scripts": {
         "install:app": "cd AliveApp && npm install",
         "install:expo": "cd AliveExpo && npm install",
-        "build:web": "cd AliveApp && npm run build",
         "dev:web": "cd AliveApp && npm run web",
         "dev:expo": "cd AliveExpo && npm start",
         "dev": "vercel dev",
