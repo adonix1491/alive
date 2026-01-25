@@ -96,10 +96,13 @@ const HomeScreen: React.FC = () => {
         setIsLoading(true);
 
         try {
+            console.log('[HomeScreen] Calling checkinService.createCheckIn()...');
             // 呼叫簽到 API
             const response = await checkinService.createCheckIn();
+            console.log('[HomeScreen] CheckIn response:', response);
 
             if (response.data) {
+                console.log('[HomeScreen] CheckIn success');
                 setIsCheckedIn(true);
                 setLastCheckInTime(new Date(response.data.checkIn.timestamp));
 
@@ -109,6 +112,7 @@ const HomeScreen: React.FC = () => {
                     [{ text: '確定', style: 'default' }]
                 );
             } else {
+                console.error('[HomeScreen] CheckIn failed:', response.error);
                 // 處理 403 資料不全錯誤
                 if (response.error?.code === 'PROFILE_INCOMPLETE') {
                     Alert.alert(

@@ -26,6 +26,12 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Request logger
+app.use((req, res, next) => {
+    console.log(`[Request] ${req.method} ${req.url} (Original: ${req.originalUrl})`);
+    next();
+});
+
 // Health check
 const healthHandler = (req: Request, res: Response) => {
     res.json({
