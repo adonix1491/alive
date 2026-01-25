@@ -100,7 +100,7 @@ module.exports = {
         proxy: [
             {
                 context: ['/api'],
-                target: 'https://alive-iota.vercel.app',
+                target: 'http://localhost:3000',
                 changeOrigin: true,
                 secure: true,
             },
