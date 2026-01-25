@@ -13,7 +13,7 @@
         "rootDir": "."
     },
     "include": [
-        "functions/**/*"
+        "api/**/*"
     ],
     "exclude": [
         "node_modules",

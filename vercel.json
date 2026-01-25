@@ -9,26 +9,14 @@
             }
         },
         {
-            "src": "functions/**/*.js",
+            "src": "api/index.js",
             "use": "@vercel/node"
         }
     ],
     "routes": [
         {
-            "src": "/api/hello",
-            "dest": "/functions/hello.js"
-        },
-        {
-            "src": "/api/gl",
-            "dest": "/functions/gl.js"
-        },
-        {
-            "src": "/api/guest-login",
-            "dest": "/functions/guest-login.js"
-        },
-        {
             "src": "/api/(.*)",
-            "dest": "/functions/index.ts"
+            "dest": "/api/index.js"
         },
         {
             "handle": "filesystem"

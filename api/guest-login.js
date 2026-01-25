@@ -68,4 +68,5 @@ async function handler(req, res) {
     });
 }
 
-module.exports = allowCors(handler);
+// Export raw handler for Express usage
+module.exports = handler;
