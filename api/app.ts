@@ -98,13 +98,13 @@ router.post('/auth/register', async (req: Request, res: Response) => {
             email,
             password: hashedPassword,
             phoneNumber: phoneNumber ?? null,
-        }).returning();
+        } as any).returning();
 
         await db.insert(notificationSettings).values({
             userId: newUser.id,
             emailEnabled: false,
             lineEnabled: false,
-        });
+        } as any);
 
         const token = generateToken(newUser.id);
 
@@ -194,14 +194,14 @@ router.post('/auth/guest-login', async (req: Request, res: Response) => {
                     password: hashedPassword,
                     phoneNumber: phoneNumber,
                     lineId: lineId || null,
-                }).returning();
+                } as any).returning();
                 user = newUser;
 
                 await db.insert(notificationSettings).values({
                     userId: user.id,
                     emailEnabled: false,
                     lineEnabled: false,
-                });
+                } as any);
             }
         } else {
             // Update existing user with new info if provided (Lazy Registration)
@@ -285,7 +285,7 @@ router.put('/user/profile', authenticate, async (req: Request, res: Response) =>
             phoneNumber: phoneNumber ?? null,
             lineId: lineId ?? null,
             updatedAt: new Date(),
-        }).where(eq(users.id, req.userId!)).returning({
+        } as any).where(eq(users.id, req.userId!)).returning({
             id: users.id, name: users.name, email: users.email, phoneNumber: users.phoneNumber, lineId: users.lineId
         });
 
@@ -341,7 +341,7 @@ router.post('/checkin', authenticate, async (req: Request, res: Response) => {
             latitude: latitude ?? null,
             longitude: longitude ?? null,
             note: note ?? null,
-        }).returning();
+        } as any).returning();
 
         res.status(201).json({ checkIn });
     } catch (error) {
@@ -402,7 +402,7 @@ router.post('/contacts', authenticate, async (req: Request, res: Response) => {
             relationship: relationship ?? null,
             phoneNumber,
             email: email ?? null,
-        }).returning();
+        } as any).returning();
 
         res.status(201).json({ contact });
     } catch (error) {
@@ -412,7 +412,7 @@ router.post('/contacts', authenticate, async (req: Request, res: Response) => {
 
 router.put('/contacts/:id', authenticate, async (req: Request, res: Response) => {
     try {
-        const contactId = parseInt(req.params.id);
+        const contactId = parseInt(req.params.id as string);
         const { name, relationship, phoneNumber, email } = req.body;
 
         if (!name || !phoneNumber) {
@@ -434,7 +434,7 @@ router.put('/contacts/:id', authenticate, async (req: Request, res: Response) =>
             relationship: relationship ?? null,
             phoneNumber,
             email: email ?? null,
-        }).where(eq(emergencyContacts.id, contactId)).returning();
+        } as any).where(eq(emergencyContacts.id, contactId)).returning();
 
         res.json({ contact: updatedContact });
     } catch (error) {
@@ -444,7 +444,7 @@ router.put('/contacts/:id', authenticate, async (req: Request, res: Response) =>
 
 router.delete('/contacts/:id', authenticate, async (req: Request, res: Response) => {
     try {
-        const contactId = parseInt(req.params.id);
+        const contactId = parseInt(req.params.id as string);
 
         const [contact] = await db.select().from(emergencyContacts).where(and(
             eq(emergencyContacts.id, contactId), eq(emergencyContacts.userId, req.userId!)
@@ -489,7 +489,7 @@ router.put('/notifications/settings', authenticate, async (req: Request, res: Re
             emailEnabled: emailEnabled ?? undefined,
             lineEnabled: lineEnabled ?? undefined,
             notificationEmail: notificationEmail ?? null,
-        }).where(eq(notificationSettings.userId, req.userId!)).returning();
+        } as any).where(eq(notificationSettings.userId, req.userId!)).returning();
 
         res.json({ settings: updatedSettings });
     } catch (error) {
@@ -529,7 +529,7 @@ router.post('/notifications/verify-email', authenticate, async (req: Request, re
             emailVerificationCode: code,
             emailVerificationExpiresAt: expiresAt,
             emailVerificationSentAt: new Date(),
-        }).where(eq(notificationSettings.userId, req.userId!));
+        } as any).where(eq(notificationSettings.userId, req.userId!));
 
         try {
             await sendVerificationEmail(email, code);
@@ -573,7 +573,7 @@ router.post('/notifications/confirm-email', authenticate, async (req: Request, r
             emailEnabled: true,
             emailVerificationCode: null,
             emailVerificationExpiresAt: null,
-        }).where(eq(notificationSettings.userId, req.userId!));
+        } as any).where(eq(notificationSettings.userId, req.userId!));
 
         res.json({ message: 'Email 驗證成功' });
     } catch (error) {
@@ -610,7 +610,7 @@ router.post('/message-templates', authenticate, async (req: Request, res: Respon
             title: title || '自訂模板',
             content,
             isDefault: false,
-        }).returning();
+        } as any).returning();
 
         res.status(201).json({ template });
     } catch (error) {
