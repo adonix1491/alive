@@ -24,7 +24,7 @@
         },
         {
             "src": "/api/auth/guest-login",
-            "dest": "/api/auth/guest-login.ts"
+            "dest": "/api/auth/guest-login.js"
         },
         {
             "src": "/api/test-ping",
