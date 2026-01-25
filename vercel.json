@@ -1,7 +1,7 @@
 {
     "version": 2,
     "functions": {
-        "api/dist/**/*.js": {
+        "api/**/*.ts": {
             "memory": 1024,
             "maxDuration": 10
         }
@@ -9,11 +9,11 @@
     "rewrites": [
         {
             "source": "/api/probe",
-            "destination": "/api/dist/probe"
+            "destination": "/api/probe"
         },
         {
             "source": "/api/(.*)",
-            "destination": "/api/dist/index"
+            "destination": "/api/index"
         },
         {
             "source": "/((?!api/|.*\\..*).*)",
