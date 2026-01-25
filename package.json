@@ -10,7 +10,7 @@
         "dev:web": "cd AliveApp && npm run web",
         "dev:expo": "cd AliveExpo && npm start",
         "dev": "vercel dev",
-        "build": "echo 'Frontend Build Disabled for Diagnosis'",
+        "build": "node scripts/build-vercel.js",
         "db:generate": "drizzle-kit generate",
         "db:push": "drizzle-kit push",
         "db:studio": "drizzle-kit studio",
