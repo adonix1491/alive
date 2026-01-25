@@ -40,7 +40,7 @@ import { RootStackParamList } from '../../types';
  */
 const ProfileScreen: React.FC = () => {
     const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-    const { user, logout, refreshUser } = useAuth();
+    const { user, logout, refreshUser, guestLogin } = useAuth();
 
     // 編輯模式狀態
     const [isEditModalVisible, setIsEditModalVisible] = useState(false);
@@ -48,6 +48,11 @@ const ProfileScreen: React.FC = () => {
     const [editPhone, setEditPhone] = useState('');
     const [editLineId, setEditLineId] = useState('');
     const [isUpdating, setIsUpdating] = useState(false);
+
+    // 訪客登入 State
+    const [guestPhone, setGuestPhone] = useState('');
+    const [guestName, setGuestName] = useState('');
+    const [isGuestLoading, setIsGuestLoading] = useState(false);
 
     // 初始化編輯資料
     const openEditModal = () => {
@@ -280,18 +285,63 @@ const ProfileScreen: React.FC = () => {
                             </>
                         ) : (
                             <View style={styles.notLoginContainer}>
-                                <Text style={styles.notLoginText}>尚未登入</Text>
-                                <TouchableOpacity
-                                    style={styles.loginButton}
-                                    onPress={() => {
-                                        // 導航到登入頁，需透過 useNavigation
-                                        const { useNavigation } = require('@react-navigation/native');
-                                        const navigation = useNavigation();
-                                        navigation.navigate('Auth');
-                                    }}
-                                >
-                                    <Text style={styles.loginButtonText}>立即登入</Text>
-                                </TouchableOpacity>
+                                <Text style={styles.notLoginText}>綁定個人資料</Text>
+                                <Text style={styles.guestFormSubtitle}>
+                                    為了確保在緊急時刻能通知到您，請綁定至少一項聯絡資訊。
+                                </Text>
+
+                                <View style={styles.guestFormContainer}>
+                                    <Text style={styles.inputLabel}>手機號碼 (必填)</Text>
+                                    <TextInput
+                                        style={styles.input}
+                                        placeholder="例：0912345678"
+                                        placeholderTextColor={COLORS.textLight}
+                                        value={guestPhone}
+                                        onChangeText={setGuestPhone}
+                                        keyboardType="phone-pad"
+                                    />
+
+                                    <Text style={styles.inputLabel}>您的稱呼 (選填)</Text>
+                                    <TextInput
+                                        style={styles.input}
+                                        placeholder="例：陳先生/小姐"
+                                        placeholderTextColor={COLORS.textLight}
+                                        value={guestName}
+                                        onChangeText={setGuestName}
+                                    />
+
+                                    <TouchableOpacity
+                                        style={styles.loginButton}
+                                        onPress={async () => {
+                                            if (!guestPhone) {
+                                                Alert.alert('提示', '請輸入手機號碼');
+                                                return;
+                                            }
+                                            setIsGuestLoading(true);
+                                            try {
+                                                const result = await guestLogin(guestPhone, guestName);
+                                                if (!result.success) {
+                                                    Alert.alert('綁定失敗', result.error);
+                                                } else {
+                                                    Alert.alert('綁定成功', '您現在可以使用簽到功能了！');
+                                                    setGuestPhone('');
+                                                    setGuestName('');
+                                                }
+                                            } catch (err) {
+                                                Alert.alert('錯誤', '發生未預期的錯誤');
+                                            } finally {
+                                                setIsGuestLoading(false);
+                                            }
+                                        }}
+                                        disabled={isGuestLoading}
+                                    >
+                                        {isGuestLoading ? (
+                                            <ActivityIndicator color={COLORS.white} />
+                                        ) : (
+                                            <Text style={styles.loginButtonText}>確認綁定</Text>
+                                        )}
+                                    </TouchableOpacity>
+                                </View>
                             </View>
                         )}
                     </View>
@@ -606,6 +656,17 @@ const styles = StyleSheet.create({
     saveButtonText: {
         color: COLORS.white,
         fontWeight: FONTS.bold as any,
+    },
+    guestFormSubtitle: {
+        fontSize: FONTS.size.sm,
+        color: COLORS.textSecondary,
+        marginBottom: SPACING.md,
+        textAlign: 'center',
+        paddingHorizontal: SPACING.sm,
+    },
+    guestFormContainer: {
+        width: '100%',
+        marginTop: SPACING.md,
     },
 });
 

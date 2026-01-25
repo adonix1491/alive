@@ -43,35 +43,47 @@ const CheckInButton: React.FC<CheckInButtonProps> = ({
     const checkAnim = useRef(new Animated.Value(isCheckedIn ? 1 : 0)).current;
 
     // 脈衝動畫效果（未簽到時）
+    // 脈衝動畫效果（未簽到時）
     useEffect(() => {
+        let loopAnimation: Animated.CompositeAnimation | null = null;
+
         if (!isCheckedIn) {
-            const pulse = Animated.loop(
+            pulseAnim.setValue(1); // 重置初始狀態
+
+            loopAnimation = Animated.loop(
                 Animated.sequence([
                     Animated.timing(pulseAnim, {
-                        toValue: 1.1,
-                        duration: 1000,
-                        useNativeDriver: true,
+                        toValue: 1.15, // 稍微加大呼吸幅度
+                        duration: 1200, // 稍微放慢呼吸節奏
+                        useNativeDriver: false, // Web 兼容性: layout animation 建議用 false
                     }),
                     Animated.timing(pulseAnim, {
                         toValue: 1,
-                        duration: 1000,
-                        useNativeDriver: true,
+                        duration: 1200,
+                        useNativeDriver: false, // Web 兼容性
                     }),
                 ])
             );
-            pulse.start();
-            return () => pulse.stop();
+            loopAnimation.start();
         } else {
+            pulseAnim.stopAnimation();
             pulseAnim.setValue(1);
         }
-    }, [isCheckedIn, pulseAnim]);
+
+        return () => {
+            if (loopAnimation) {
+                loopAnimation.stop();
+            }
+        };
+    }, [isCheckedIn]);
 
     // 簽到成功動畫
     useEffect(() => {
         Animated.timing(checkAnim, {
             toValue: isCheckedIn ? 1 : 0,
             duration: 300,
-            useNativeDriver: true,
+            toValue: 0.95,
+            useNativeDriver: false,
         }).start();
     }, [isCheckedIn, checkAnim]);
 
@@ -82,7 +94,7 @@ const CheckInButton: React.FC<CheckInButtonProps> = ({
     const handlePressIn = () => {
         Animated.spring(scaleAnim, {
             toValue: 0.95,
-            useNativeDriver: true,
+            useNativeDriver: false,
         }).start();
     };
 
@@ -94,7 +106,7 @@ const CheckInButton: React.FC<CheckInButtonProps> = ({
             toValue: 1,
             friction: 3,
             tension: 40,
-            useNativeDriver: true,
+            useNativeDriver: false,
         }).start();
     };
 

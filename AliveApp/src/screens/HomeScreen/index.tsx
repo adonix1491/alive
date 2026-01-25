@@ -32,14 +32,11 @@ import { RootStackParamList } from '../../types';
  */
 const HomeScreen: React.FC = () => {
     const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-    const { user, guestLogin } = useAuth();
+    const { user } = useAuth();
     const [isCheckedIn, setIsCheckedIn] = useState(false);
     const [lastCheckInTime, setLastCheckInTime] = useState<Date | null>(null);
     const [isLoading, setIsLoading] = useState(false);
-    const [guestPhone, setGuestPhone] = useState('');
-    const [guestName, setGuestName] = useState('');
     const [debugToken, setDebugToken] = useState<string | null>(null);
-    const [isGuestModalVisible, setIsGuestModalVisible] = useState(false);
 
     React.useEffect(() => {
         checkinService.getToken().then(t => setDebugToken(t));
@@ -51,34 +48,26 @@ const HomeScreen: React.FC = () => {
      * return true = 通過檢查, false = 不通過
      */
     const checkProfileCompletion = useCallback(() => {
-        // 1. 訪客檢查 (未登入)
-        // 1. 訪客檢查 (未登入)
-        // 1. 訪客檢查 (未登入) - 改為觸發 Modal
-        if (!user) {
-            setIsGuestModalVisible(true);
-            return false;
-        }
-
-        // 2. 資料綁定檢查 (手機 或 Email 或 LINE ID)
-        // 確保至少有一種聯絡方式
-        const hasContactMethod = !!user.email || !!user.phoneNumber || !!user.lineId;
+        // 1. 檢查是否有用戶資料或已綁定聯絡方式
+        const hasContactMethod = user && (!!user.email || !!user.phoneNumber || !!user.lineId);
 
         // DEBUG: 打印檢查結果
         console.log('Profile Check:', {
-            email: !!user.email,
-            phone: !!user.phoneNumber,
-            line: !!user.lineId,
+            hasUser: !!user,
+            email: user?.email,
+            phone: user?.phoneNumber,
+            line: user?.lineId,
             result: hasContactMethod
         });
 
         if (!hasContactMethod) {
             Alert.alert(
                 '需要綁定資料',
-                `為了能夠完成簽到，請至少綁定一種聯絡方式：\n1. 手機號碼 ${user.phoneNumber ? '(已綁定)' : '(未綁定)'}\n2. Email ${user.email ? '(已綁定)' : '(未綁定)'}\n3. LINE ID ${user.lineId ? '(已綁定)' : '(未綁定)'}`,
+                '為了能夠完成簽到，請先綁定個人聯絡資訊 (手機/Email/LINE 擇一)。',
                 [
                     { text: '稍後再說', style: 'cancel' },
                     {
-                        text: '前往設定頁',
+                        text: '前往綁定',
                         onPress: () => navigation.navigate('Profile')
                     }
                 ]
@@ -173,38 +162,7 @@ const HomeScreen: React.FC = () => {
         return now.toLocaleDateString('zh-TW', options);
     };
 
-    const handleGuestLogin = async () => {
-        if (!guestPhone) {
-            Alert.alert('提示', '請輸入手機號碼');
-            return;
-        }
-        if (guestPhone.length < 8) {
-            Alert.alert('提示', '請輸入有效的手機號碼');
-            return;
-        }
 
-        setIsLoading(true);
-        try {
-            const result = await guestLogin(guestPhone, guestName);
-            if (result.success) {
-                // Login success, close modal and trigger check-in automatically
-                setIsGuestModalVisible(false);
-                setGuestPhone('');
-                setGuestName('');
-                Alert.alert(
-                    '歡迎',
-                    '已自動登入！請再次點擊「簽到」按鈕以完成今日簽到。',
-                    [{ text: '好', onPress: () => handleCheckIn() }]
-                );
-            } else {
-                Alert.alert('登入失敗', result.error);
-            }
-        } catch (error) {
-            Alert.alert('錯誤', '發生未預期的錯誤');
-        } finally {
-            setIsLoading(false);
-        }
-    };
 
     return (
         <GradientBackground variant="light">
@@ -279,9 +237,9 @@ const HomeScreen: React.FC = () => {
                         {(!user || !user.id) ? (
                             <StatusCard
                                 title="訪客模式"
-                                subtitle="尚未啟用 (點擊簽到以啟用)"
+                                subtitle="尚未啟用 (點擊綁定資料)"
                                 variant="warning"
-                                onPress={() => setIsGuestModalVisible(true)}
+                                onPress={() => navigation.navigate('Profile')}
                                 rightContent={<Text style={styles.arrowIcon}>›</Text>}
                                 style={styles.card}
                             />
@@ -337,65 +295,6 @@ const HomeScreen: React.FC = () => {
                         </Text>
                     </View>
                 </View>
-                {/* Guest Login Modal */}
-                <Modal
-                    visible={isGuestModalVisible}
-                    transparent={true}
-                    animationType="slide"
-                    onRequestClose={() => setIsGuestModalVisible(false)}
-                >
-                    <KeyboardAvoidingView
-                        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                        style={styles.modalOverlay}
-                    >
-                        <View style={styles.modalContent}>
-                            <View style={styles.modalHeader}>
-                                <Text style={styles.modalTitle}>訪客快速簽到</Text>
-                                <TouchableOpacity
-                                    onPress={() => setIsGuestModalVisible(false)}
-                                    style={styles.closeButton}
-                                >
-                                    <Text style={styles.closeButtonText}>✕</Text>
-                                </TouchableOpacity>
-                            </View>
-
-                            <Text style={styles.modalSubtitle}>
-                                請輸入您的手機號碼以綁定身份。\n僅需輸入一次，系統將自動記錄。
-                            </Text>
-
-                            <Text style={styles.inputLabel}>手機號碼 (必填)</Text>
-                            <TextInput
-                                style={styles.guestInput}
-                                placeholder="例：0912345678"
-                                placeholderTextColor={COLORS.textLight}
-                                value={guestPhone}
-                                onChangeText={setGuestPhone}
-                                keyboardType="phone-pad"
-                            />
-
-                            <Text style={styles.inputLabel}>您的稱呼 (選填)</Text>
-                            <TextInput
-                                style={styles.guestInput}
-                                placeholder="例：陳先生/小姐"
-                                placeholderTextColor={COLORS.textLight}
-                                value={guestName}
-                                onChangeText={setGuestName}
-                            />
-
-                            <TouchableOpacity
-                                style={styles.guestButton}
-                                onPress={handleGuestLogin}
-                                disabled={isLoading}
-                            >
-                                {isLoading ? (
-                                    <Text style={styles.guestButtonText}>處理中...</Text>
-                                ) : (
-                                    <Text style={styles.guestButtonText}>確認並簽到</Text>
-                                )}
-                            </TouchableOpacity>
-                        </View>
-                    </KeyboardAvoidingView>
-                </Modal>
             </SafeAreaView>
         </GradientBackground >
     );

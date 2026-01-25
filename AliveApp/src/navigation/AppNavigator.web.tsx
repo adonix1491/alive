@@ -79,28 +79,23 @@ export function AppNavigator() {
     return (
         <NavigationContainer>
             <Stack.Navigator screenOptions={{ headerShown: false }}>
-                {!isAuthenticated ? (
-                    <Stack.Screen name={ROUTES.AUTH} component={AuthScreen} />
-                ) : (
-                    <>
-                        <Stack.Screen name="MainTabs" component={MainTabNavigator} />
-                        <Stack.Screen
-                            name={ROUTES.MESSAGE_TEMPLATES}
-                            component={MessageTemplatesScreen}
-                            options={{ headerShown: true, title: '訊息範本' }}
-                        />
-                        <Stack.Screen
-                            name={ROUTES.NOTIFICATION_SETTINGS}
-                            component={NotificationSettingsScreen}
-                            options={{ headerShown: true, title: '通知設定' }}
-                        />
-                        <Stack.Screen
-                            name={ROUTES.ANOMALY_RULES}
-                            component={AnomalyRulesScreen}
-                            options={{ headerShown: true, title: '異常規則' }}
-                        />
-                    </>
-                )}
+                <Stack.Screen name="MainTabs" component={MainTabNavigator} />
+                <Stack.Screen name={ROUTES.AUTH} component={AuthScreen} />
+                <Stack.Screen
+                    name={ROUTES.MESSAGE_TEMPLATES}
+                    component={MessageTemplatesScreen}
+                    options={{ headerShown: true, title: '訊息範本' }}
+                />
+                <Stack.Screen
+                    name={ROUTES.NOTIFICATION_SETTINGS}
+                    component={NotificationSettingsScreen}
+                    options={{ headerShown: true, title: '通知設定' }}
+                />
+                <Stack.Screen
+                    name={ROUTES.ANOMALY_RULES}
+                    component={AnomalyRulesScreen}
+                    options={{ headerShown: true, title: '異常規則' }}
+                />
             </Stack.Navigator>
         </NavigationContainer>
     );

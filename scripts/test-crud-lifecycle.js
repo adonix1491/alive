@@ -1,6 +1,6 @@
 const fetch = require('node-fetch');
 
-const BASE_URL = 'https://alive-iota.vercel.app/api';
+const BASE_URL = 'http://localhost:3000/api';
 
 async function testGuestWorkflow() {
     console.log(`🚀 Testing Guest CRUD Workflow at: ${BASE_URL}\n`);
