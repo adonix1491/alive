@@ -67,9 +67,11 @@ async function authenticate(req: Request, res: Response, next: NextFunction) {
     next();
 }
 
+const router = express.Router();
+
 // ==================== 認證 API ====================
 
-app.post('/api/auth/register', async (req: Request, res: Response) => {
+router.post('/auth/register', async (req: Request, res: Response) => {
     try {
         const { name, email, password, phoneNumber } = req.body;
 
@@ -116,7 +118,7 @@ app.post('/api/auth/register', async (req: Request, res: Response) => {
     }
 });
 
-app.post('/api/auth/login', async (req: Request, res: Response) => {
+router.post('/auth/login', async (req: Request, res: Response) => {
     try {
         const { email, password } = req.body;
 
@@ -149,8 +151,9 @@ app.post('/api/auth/login', async (req: Request, res: Response) => {
     }
 });
 
-app.post('/api/auth/guest-login', async (req: Request, res: Response) => {
+router.post('/auth/guest-login', async (req: Request, res: Response) => {
     try {
+        console.log('[API] Guest Login Request Body:', req.body);
         const { phoneNumber, name, email, lineId } = req.body;
 
         if (!phoneNumber) {
@@ -231,7 +234,7 @@ app.post('/api/auth/guest-login', async (req: Request, res: Response) => {
     }
 });
 
-app.get('/api/auth/me', authenticate, async (req: Request, res: Response) => {
+router.get('/auth/me', authenticate, async (req: Request, res: Response) => {
     try {
         const [user] = await db.select({
             id: users.id, name: users.name, email: users.email, phoneNumber: users.phoneNumber,
@@ -251,7 +254,7 @@ app.get('/api/auth/me', authenticate, async (req: Request, res: Response) => {
 
 // ==================== 用戶 API ====================
 
-app.get('/api/user/profile', authenticate, async (req: Request, res: Response) => {
+router.get('/user/profile', authenticate, async (req: Request, res: Response) => {
     try {
         const [user] = await db.select({
             id: users.id, name: users.name, email: users.email, phoneNumber: users.phoneNumber,
@@ -268,7 +271,7 @@ app.get('/api/user/profile', authenticate, async (req: Request, res: Response) =
     }
 });
 
-app.put('/api/user/profile', authenticate, async (req: Request, res: Response) => {
+router.put('/user/profile', authenticate, async (req: Request, res: Response) => {
     try {
         const { name, phoneNumber, lineId } = req.body;
 
@@ -292,7 +295,7 @@ app.put('/api/user/profile', authenticate, async (req: Request, res: Response) =
     }
 });
 
-app.post('/api/user/password', authenticate, async (req: Request, res: Response) => {
+router.post('/user/password', authenticate, async (req: Request, res: Response) => {
     try {
         const { oldPassword, newPassword } = req.body;
 
@@ -329,7 +332,7 @@ app.post('/api/user/password', authenticate, async (req: Request, res: Response)
 
 // ==================== 簽到 API ====================
 
-app.post('/api/checkin', authenticate, async (req: Request, res: Response) => {
+router.post('/checkin', authenticate, async (req: Request, res: Response) => {
     try {
         const { latitude, longitude, note } = req.body;
 
@@ -346,7 +349,7 @@ app.post('/api/checkin', authenticate, async (req: Request, res: Response) => {
     }
 });
 
-app.get('/api/checkin/history', authenticate, async (req: Request, res: Response) => {
+router.get('/checkin/history', authenticate, async (req: Request, res: Response) => {
     try {
         const { limit = '20', offset = '0' } = req.query;
         const limitNum = parseInt(limit as string);
@@ -365,7 +368,7 @@ app.get('/api/checkin/history', authenticate, async (req: Request, res: Response
 
 // ==================== 聯絡人 API ====================
 
-app.get('/api/contacts', authenticate, async (req: Request, res: Response) => {
+router.get('/contacts', authenticate, async (req: Request, res: Response) => {
     try {
         const contacts = await db.select().from(emergencyContacts)
             .where(eq(emergencyContacts.userId, req.userId!));
@@ -376,7 +379,7 @@ app.get('/api/contacts', authenticate, async (req: Request, res: Response) => {
     }
 });
 
-app.post('/api/contacts', authenticate, async (req: Request, res: Response) => {
+router.post('/contacts', authenticate, async (req: Request, res: Response) => {
     try {
         const { name, relationship, phoneNumber, email } = req.body;
 
@@ -407,7 +410,7 @@ app.post('/api/contacts', authenticate, async (req: Request, res: Response) => {
     }
 });
 
-app.put('/api/contacts/:id', authenticate, async (req: Request, res: Response) => {
+router.put('/contacts/:id', authenticate, async (req: Request, res: Response) => {
     try {
         const contactId = parseInt(req.params.id);
         const { name, relationship, phoneNumber, email } = req.body;
@@ -439,7 +442,7 @@ app.put('/api/contacts/:id', authenticate, async (req: Request, res: Response) =
     }
 });
 
-app.delete('/api/contacts/:id', authenticate, async (req: Request, res: Response) => {
+router.delete('/contacts/:id', authenticate, async (req: Request, res: Response) => {
     try {
         const contactId = parseInt(req.params.id);
 
@@ -462,7 +465,7 @@ app.delete('/api/contacts/:id', authenticate, async (req: Request, res: Response
 
 // ==================== 通知 API ====================
 
-app.get('/api/notifications/settings', authenticate, async (req: Request, res: Response) => {
+router.get('/notifications/settings', authenticate, async (req: Request, res: Response) => {
     try {
         const [settings] = await db.select().from(notificationSettings)
             .where(eq(notificationSettings.userId, req.userId!)).limit(1);
@@ -478,7 +481,7 @@ app.get('/api/notifications/settings', authenticate, async (req: Request, res: R
     }
 });
 
-app.put('/api/notifications/settings', authenticate, async (req: Request, res: Response) => {
+router.put('/notifications/settings', authenticate, async (req: Request, res: Response) => {
     try {
         const { emailEnabled, lineEnabled, notificationEmail } = req.body;
 
@@ -494,7 +497,7 @@ app.put('/api/notifications/settings', authenticate, async (req: Request, res: R
     }
 });
 
-app.post('/api/notifications/verify-email', authenticate, async (req: Request, res: Response) => {
+router.post('/notifications/verify-email', authenticate, async (req: Request, res: Response) => {
     try {
         const { email } = req.body;
 
@@ -539,7 +542,7 @@ app.post('/api/notifications/verify-email', authenticate, async (req: Request, r
     }
 });
 
-app.post('/api/notifications/confirm-email', authenticate, async (req: Request, res: Response) => {
+router.post('/notifications/confirm-email', authenticate, async (req: Request, res: Response) => {
     try {
         const { code } = req.body;
 
@@ -580,7 +583,7 @@ app.post('/api/notifications/confirm-email', authenticate, async (req: Request, 
 
 // ==================== 訊息模板 API ====================
 
-app.get('/api/message-templates', authenticate, async (req: Request, res: Response) => {
+router.get('/message-templates', authenticate, async (req: Request, res: Response) => {
     try {
         const templates = await db.select().from(messageTemplates)
             .where(eq(messageTemplates.userId, req.userId!))
@@ -592,7 +595,7 @@ app.get('/api/message-templates', authenticate, async (req: Request, res: Respon
     }
 });
 
-app.post('/api/message-templates', authenticate, async (req: Request, res: Response) => {
+router.post('/message-templates', authenticate, async (req: Request, res: Response) => {
     try {
         const { type, title, content } = req.body;
 
@@ -614,6 +617,10 @@ app.post('/api/message-templates', authenticate, async (req: Request, res: Respo
         res.status(500).json({ error: { code: 'INTERNAL_ERROR', message: '伺服器錯誤' } });
     }
 });
+
+// Mount router
+app.use('/api', router); // For cases where /api prefix is preserved
+app.use('/', router);    // For cases where /api prefix is stripped by Vercel
 
 // 404 Handler
 app.use('*', (req, res) => {
