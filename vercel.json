@@ -10,7 +10,7 @@
             "destination": "/api/test-ping"
         },
         {
-            "source": "/api/((?!auth/guest-login|test-ping).*)",
+            "source": "/api/:path*",
             "destination": "/api/index.ts"
         },
         {
