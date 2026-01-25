@@ -1,6 +1,16 @@
 {
     "version": 2,
+    "functions": {
+        "api/**/*.ts": {
+            "memory": 1024,
+            "maxDuration": 10
+        }
+    },
     "rewrites": [
+        {
+            "source": "/api/probe",
+            "destination": "/api/probe.ts"
+        },
         {
             "source": "/api/(.*)",
             "destination": "/api/index"

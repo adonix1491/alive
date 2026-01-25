@@ -9,6 +9,7 @@ async function diagnose() {
 
     const endpoints = [
         { name: 'Health Check', path: '/api/health', method: 'GET' },
+        { name: 'Probe (Simple)', path: '/api/probe', method: 'GET' },
         { name: 'API Root', path: '/api', method: 'GET' },
         // If you have a known safe public endpoint, list it here
     ];
