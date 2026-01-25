@@ -2,6 +2,10 @@
     "version": 2,
     "rewrites": [
         {
+            "source": "/api/auth/guest-login",
+            "destination": "/api/auth/guest-login"
+        },
+        {
             "source": "/api/:path*",
             "destination": "/api/index.ts"
         },
