@@ -10,6 +10,7 @@
         "dev:expo": "cd AliveExpo && npm start",
         "dev": "vercel dev",
         "postinstall": "npm run build:web",
+        "build": "npm run build:web",
         "build:web": "node scripts/build-vercel.js",
         "build:api": "tsc -p api/tsconfig.json",
         "db:generate": "drizzle-kit generate",

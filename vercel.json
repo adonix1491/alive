@@ -1,14 +1,45 @@
 {
     "version": 2,
-    "cleanUrls": true,
-    "rewrites": [
+    "builds": [
         {
-            "source": "/api/(.*)",
-            "destination": "/api/index"
+            "src": "api/index.ts",
+            "use": "@vercel/node"
         },
         {
-            "source": "/((?!api/|.*\\..*).*)",
-            "destination": "/index.html"
+            "src": "api/probe.ts",
+            "use": "@vercel/node"
+        },
+        {
+            "src": "api/test-ping.ts",
+            "use": "@vercel/node"
+        },
+        {
+            "src": "package.json",
+            "use": "@vercel/static-build",
+            "config": {
+                "distDir": "public"
+            }
+        }
+    ],
+    "routes": [
+        {
+            "src": "/api/probe",
+            "dest": "/api/probe.ts"
+        },
+        {
+            "src": "/api/test-ping",
+            "dest": "/api/test-ping.ts"
+        },
+        {
+            "src": "/api/(.*)",
+            "dest": "/api/index.ts"
+        },
+        {
+            "handle": "filesystem"
+        },
+        {
+            "src": "/(.*)",
+            "dest": "/index.html"
         }
     ]
 }
