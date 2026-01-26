@@ -1,9 +1,9 @@
-import { VercelRequest, VercelResponse } from '@vercel/node';
-
-export default function (req: VercelRequest, res: VercelResponse) {
+export default function handler(req: any, res: any) {
     res.status(200).json({
-        status: 'ok',
-        message: 'API Probe Successful',
-        timestamp: new Date().toISOString()
+        message: 'Probe successful',
+        timestamp: new Date().toISOString(),
+        query: req.query,
+        body: req.body,
+        method: req.method
     });
 }
