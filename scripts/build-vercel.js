@@ -24,12 +24,13 @@ try {
     console.log('🏗️ Building Web Assets...');
     execSync('npm run build:web', { cwd: aliveAppDir, stdio: 'inherit' });
 
-    // 2. Prepare Root Public Directory
-    console.log('📂 Preparing public directory...');
-    if (fs.existsSync(publicDir)) {
-        fs.rmSync(publicDir, { recursive: true, force: true });
+    // 2. Prepare Root Dist Directory
+    console.log('📂 Preparing dist directory...');
+    const rootDistDir = path.join(rootDir, 'dist');
+    if (fs.existsSync(rootDistDir)) {
+        fs.rmSync(rootDistDir, { recursive: true, force: true });
     }
-    fs.mkdirSync(publicDir);
+    fs.mkdirSync(rootDistDir);
 
     // 3. Copy Build Artifacts
     const distDir = path.join(aliveAppDir, 'dist');
@@ -37,8 +38,8 @@ try {
         throw new Error('Build failed: AliveApp/dist directory not found!');
     }
 
-    console.log(`📋 Copying files from ${distDir} to ${publicDir}...`);
-    fs.cpSync(distDir, publicDir, { recursive: true });
+    console.log(`📋 Copying files from ${distDir} to ${rootDistDir}...`);
+    fs.cpSync(distDir, rootDistDir, { recursive: true });
 
     console.log('✅ Build & Copy Complete!');
 } catch (error) {
