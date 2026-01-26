@@ -5,7 +5,7 @@ import path from 'path';
 // Load envs
 dotenv.config({ path: path.resolve(__dirname, '../.env.local') });
 
-const PORT = 3000;
+const PORT = 3001;
 
 app.listen(PORT, () => {
     console.log(`🚀 Local Dev Server running on http://localhost:${PORT}`);

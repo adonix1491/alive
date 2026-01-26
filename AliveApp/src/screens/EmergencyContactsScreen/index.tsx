@@ -116,11 +116,11 @@ const EmergencyContactsScreen: React.FC = () => {
     const { user } = useAuth();
 
     const openAddModal = () => {
-        // 檢查是否已綁定個人資訊
-        if (!user || !user.phoneNumber || !user.name || user.name.startsWith('Guest ')) {
+        // 檢查是否已綁定個人資訊 (強制要求手機號碼)
+        if (!user || !user.phoneNumber) {
             Alert.alert(
                 '尚未綁定個人資訊',
-                '新增聯絡人前，請先完成個人資訊綁定（需設定姓名與電話）。',
+                '為了能正常通知緊急聯絡人，請先完成「手機號碼」綁定。',
                 [
                     { text: '取消', style: 'cancel' },
                     { text: '前往綁定', onPress: () => navigation.navigate('Profile' as never) }

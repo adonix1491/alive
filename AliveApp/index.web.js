@@ -11,7 +11,8 @@ if (typeof window !== 'undefined') {
 
 import React, { useState, useEffect } from 'react';
 import { AppRegistry, View, Text, ScrollView, ActivityIndicator } from 'react-native';
-import { name as appName } from './app.json';
+import appConfig from './app.json';
+const appName = appConfig.name;
 
 // Simple inline styles to avoid dependency issues
 const styles = {

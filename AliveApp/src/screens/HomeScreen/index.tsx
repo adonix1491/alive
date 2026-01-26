@@ -48,22 +48,20 @@ const HomeScreen: React.FC = () => {
      * return true = 通過檢查, false = 不通過
      */
     const checkProfileCompletion = useCallback(() => {
-        // 1. 檢查是否有用戶資料或已綁定聯絡方式
-        const hasContactMethod = user && (!!user.email || !!user.phoneNumber || !!user.lineId);
+        // 1. 檢查是否已綁定手機號碼 (強制要求)
+        const hasPhoneNumber = user && !!user.phoneNumber;
 
         // DEBUG: 打印檢查結果
         console.log('Profile Check:', {
             hasUser: !!user,
-            email: user?.email,
             phone: user?.phoneNumber,
-            line: user?.lineId,
-            result: hasContactMethod
+            result: hasPhoneNumber
         });
 
-        if (!hasContactMethod) {
+        if (!hasPhoneNumber) {
             Alert.alert(
                 '需要綁定資料',
-                '為了能夠完成簽到，請先綁定個人聯絡資訊 (手機/Email/LINE 擇一)。',
+                '為了確保安全，簽到前「必須」綁定手機號碼。',
                 [
                     { text: '稍後再說', style: 'cancel' },
                     {

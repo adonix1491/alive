@@ -6,7 +6,7 @@
 import * as dotenv from 'dotenv';
 import path from 'path';
 // Force reload .env from root
-dotenv.config({ path: path.resolve(__dirname, '../../.env') });
+dotenv.config({ path: path.resolve(__dirname, '../../.env.local') });
 
 import app from '../app';
 import http from 'http';

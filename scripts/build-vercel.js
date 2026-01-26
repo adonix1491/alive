@@ -9,7 +9,7 @@ const publicDir = path.join(rootDir, 'public');
 console.log('🚀 Starting Vercel Build Script for AliveApp...');
 
 try {
-    // 1. Install and Build AliveApp
+    // 1. Install and Build AliveApp (RN Webpack Build)
     console.log('📦 Building AliveApp (RN Webpack Build)...');
 
     // Force clean install to prevent caching issues
