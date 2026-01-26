@@ -2,11 +2,15 @@
     "version": 2,
     "rewrites": [
         {
-            "source": "/api/:path*",
+            "source": "/api/probe",
+            "destination": "/api/probe"
+        },
+        {
+            "source": "/api/(.*)",
             "destination": "/api/index"
         },
         {
-            "source": "/(.*)",
+            "source": "/((?!api/|.*\\..*).*)",
             "destination": "/index.html"
         }
     ]

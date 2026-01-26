@@ -48,6 +48,14 @@ const healthHandler = (req: Request, res: Response) => {
 app.get('/health', healthHandler);
 app.get('/api/health', healthHandler);
 
+// Probe for Vercel
+app.get('/probe', (req, res) => {
+    res.json({ message: 'Express Probe successful', timestamp: new Date().toISOString() });
+});
+app.get('/api/probe', (req, res) => {
+    res.json({ message: 'Express Probe successful', timestamp: new Date().toISOString() });
+});
+
 // 認證中介層
 async function authenticate(req: Request, res: Response, next: NextFunction) {
     const authHeader = req.headers.authorization;
